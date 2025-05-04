@@ -1,3 +1,34 @@
+main-Dny5Ufsd.js:79 Appel API pour avis approuvés: https://mdmcv4-backend-production-b615.up.railway.app/api
+/reviews?status=approved
+mdmcv4-backend-production-b615.up.railway.app/api/reviews?status=approved:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+main-Dny5Ufsd.js:79 Erreur HTTP 404 lors de la récupération des avis approuvés: {"success":false,"error":"Not Found - /api/reviews?status=approved"}
+(anonyme) @ main-Dny5Ufsd.js:79
+main-Dny5Ufsd.js:79 Erreur lors du fetch des avis approuvés: Error: HTTP error! status: 404
+    at main-Dny5Ufsd.js:79:296
+(anonyme) @ main-Dny5Ufsd.js:79
+www.mdmcmusicads.com/:1 Access to XMLHttpRequest at 'https://mdmcv4-backend-production.up.railway.app/api/blog/latest?count=3' from origin 'https://www.mdmcmusicads.com' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header has a value 'https://mdmcv4-frontend-production.up.railway.app' that is not equal to the supplied origin.
+main-Dny5Ufsd.js:56 Erreur lors de la récupération des articles du blog: ve
+getLatestBlogPosts @ main-Dny5Ufsd.js:56
+main-Dny5Ufsd.js:56 Erreur lors de la récupération des articles: ve
+(anonyme) @ main-Dny5Ufsd.js:56
+mdmcv4-backend-production.up.railway.app/api/blog/latest?count=3:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+main-Dny5Ufsd.js:79 Erreur: Configuration EmailJS manquante. Vérifiez les variables d'environnement (REACT_APP_...) et le redémarrage du serveur.
+g @ main-Dny5Ufsd.js:79
+main-Dny5Ufsd.js:79 Erreur lors de l'envoi via EmailJS: Error: Configuration EmailJS manquante.
+    at g (main-Dny5Ufsd.js:79:7919)
+    at up (main-Dny5Ufsd.js:48:117382)
+    at main-Dny5Ufsd.js:48:122506
+    at vd (main-Dny5Ufsd.js:48:9040)
+    at $c (main-Dny5Ufsd.js:48:118616)
+    at iu (main-Dny5Ufsd.js:49:26689)
+    at Bb (main-Dny5Ufsd.js:49:26511)
+g @ main-Dny5Ufsd.js:79
 // src/app.js (Corrected and Refactored - Fixed require paths)
 
 require("dotenv").config(); // Load environment variables from .env file
@@ -62,8 +93,8 @@ app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 // === API Routes Mounting ===
-// Use consistent base path (e.g., /api/v1)
-const apiBasePath = "/api/v1";
+// Use consistent base path (e.g., /api/)
+const apiBasePath = "/api/";
 
 app.use(`${apiBasePath}/auth`, authRoutes);
 app.use(`${apiBasePath}/users`, userRoutes); // Assuming endpoint
