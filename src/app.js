@@ -1,4 +1,4 @@
-// src/app.js (Updated with CORS fix and /api/v1/ base path)
+// src/app.js (Updated: Reverted API base path to /api/ as requested)
 
 require("dotenv").config(); // Load environment variables from .env file FIRST
 const express = require("express");
@@ -27,10 +27,11 @@ const app = express();
 // === Security Middleware ===
 app.use(helmet()); // Set various HTTP headers for security
 
-// === CORS Configuration (UPDATED) ===
+// === CORS Configuration ===
+// This configuration allows your frontend domain
 const allowedOrigins = [
-  'https://www.mdmcmusicads.com',           // Production frontend URL (Added!)
-  'https://mdmcv4-frontend-production.up.railway.app', // Railway frontend URL (Kept for now)
+  'https://www.mdmcmusicads.com',           // Production frontend URL
+  'https://mdmcv4-frontend-production.up.railway.app', // Railway frontend URL
   // Add localhost URLs for local development testing if needed:
   'http://localhost:5173',                // Example for Vite local dev server
   'http://localhost:3000'                 // Example for Create React App local dev server
@@ -48,7 +49,7 @@ const corsOptions = {
   },
   credentials: true, // Allow cookies, authorization headers etc.
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  optionsSuccessStatus: 204 // For legacy browser compatibility
+  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions)); // Use configured CORS - Placed early
@@ -62,29 +63,27 @@ if (process.env.NODE_ENV === "development") {
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
-// === API Routes Mounting (UPDATED with /api/v1/ base path) ===
-// Using /api/v1/ as the standard base path for all API routes
-const apiBasePath = "/api/v1"; // Changed from "/api/"
+// === API Routes Mounting (Reverted to /api/ base path) ===
+// Using /api/ as the standard base path for all API routes (as requested)
+const apiBasePath = "/api/"; // Reverted back from "/api/v1/"
 
-app.use(`${apiBasePath}/auth`, authRoutes);
-app.use(`${apiBasePath}/users`, userRoutes);
-app.use(`${apiBasePath}/marketing`, marketingRoutes);
-app.use(`${apiBasePath}/wordpress`, wordpressRoutes); // Assuming this route exists and is needed
-app.use(`${apiBasePath}/landing-pages`, landingPageRoutes);
-app.use(`${apiBasePath}/reviews`, reviewRoutes);
-app.use(`${apiBasePath}/chatbot`, chatbotRoutes);
-app.use(`${apiBasePath}/artists`, artistRoutes);
-app.use(`${apiBasePath}/smartlinks`, smartLinkRoutes);
+app.use(`${apiBasePath}auth`, authRoutes); // Note: No trailing slash in base path, added here implicitly
+app.use(`${apiBasePath}users`, userRoutes);
+app.use(`${apiBasePath}marketing`, marketingRoutes);
+app.use(`${apiBasePath}wordpress`, wordpressRoutes);
+app.use(`${apiBasePath}landing-pages`, landingPageRoutes);
+app.use(`${apiBasePath}reviews`, reviewRoutes);
+app.use(`${apiBasePath}chatbot`, chatbotRoutes);
+app.use(`${apiBasePath}artists`, artistRoutes);
+app.use(`${apiBasePath}smartlinks`, smartLinkRoutes);
 
 // === Health Check Endpoint ===
-// Keep it simple, outside the /api/v1 prefix if desired, or move it inside
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "MDMC Backend API is running" });
 });
 
 // === 404 Not Found Handler ===
 // This should come AFTER all other valid routes
-// It catches any request that didn't match a route above it
 app.use((req, res, next) => {
     res.status(404).json({
       success: false,
@@ -97,31 +96,27 @@ app.use((req, res, next) => {
 // This should come last, after the 404 handler
 app.use((err, req, res, next) => {
   console.error("Error Middleware Catch:", err.name, err.message);
-  // Log stack trace only in development for cleaner production logs
   if (process.env.NODE_ENV === "development") {
       console.error(err.stack);
   }
 
-  // Default error details
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal Server Error";
 
-  // Handle specific Mongoose errors for better client feedback
+  // Handle specific Mongoose errors
   if (err.name === "CastError") {
       message = `Resource not found with id of ${err.value}`;
       statusCode = 404;
   }
-  if (err.code === 11000) { // Mongoose duplicate key error
-      // Attempt to extract the duplicate field name for a more helpful message
+  if (err.code === 11000) {
       const field = Object.keys(err.keyValue)[0];
       message = `Duplicate field value entered for: ${field}`;
       statusCode = 400;
   }
-  if (err.name === "ValidationError") { // Mongoose validation error
+  if (err.name === "ValidationError") {
       message = Object.values(err.errors).map(val => val.message).join(', ');
       statusCode = 400;
   }
-  // Handle CORS errors specifically if needed (from the corsOptions callback)
   if (message === 'Not allowed by CORS') {
     statusCode = 403; // Forbidden
   }
@@ -129,40 +124,37 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json({
       success: false,
       error: message
-      // Optionally include stack in development:
-      // stack: process.env.NODE_ENV === "development" ? err.stack : undefined
   });
 });
 
 
 // === Database Connection & Server Start ===
-const PORT = process.env.PORT || 5000; // Railway injects its own PORT env var
+const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
     console.error("FATAL ERROR: MONGODB_URI environment variable is not defined.");
-    process.exit(1); // Exit if DB connection string is missing
+    process.exit(1);
 }
 
-let server; // Define server variable to potentially close it on errors
+let server;
 
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
     console.log(`Successfully connected to MongoDB.`);
-    server = app.listen(PORT, () => { // Assign the server instance
+    server = app.listen(PORT, () => {
       console.log(`Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
     });
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
-    process.exit(1); // Exit if DB connection fails on startup
+    process.exit(1);
   });
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err, promise) => {
   console.error(`Unhandled Rejection: ${err.name} - ${err.message}`);
-  // Close server & exit process for clean shutdown
   if (server) {
     server.close(() => {
         console.log("Server closed due to unhandled rejection.");
@@ -173,11 +165,10 @@ process.on("unhandledRejection", (err, promise) => {
   }
 });
 
-// Handle uncaught exceptions (less common for typical web apps, but good practice)
+// Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   console.error(`Uncaught Exception: ${err.name} - ${err.message}`);
   console.error(err.stack);
-  // Close server & exit process
   if (server) {
     server.close(() => {
       console.log('Server closed due to uncaught exception.');
