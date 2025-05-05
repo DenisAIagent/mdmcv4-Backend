@@ -1,4 +1,4 @@
-// routes/auth.routes.js (Corrected & Middleware commented out)
+// routes/auth.routes.js (Nettoyé et Sécurisé)
 
 const express = require("express");
 const {
@@ -9,36 +9,30 @@ const {
   updatePassword,
   forgotPassword,
   resetPassword
-} = require("../controllers/auth"); // Path seems correct assuming standard structure
+} = require("../controllers/auth"); // Assurez-vous que ce chemin est correct
 
 const router = express.Router();
 
-// Middleware import commented out as user stated no dedicated middleware file exists
-// const { protect } = require("../middleware/auth");
+// --- IMPORTANT : Middleware de Sécurité ---
+// Le middleware 'protect' est maintenant réactivé pour certaines routes.
+// Assurez-vous que le fichier '../middleware/auth.js' existe et exporte
+// correctement la fonction 'protect'.
+// Si ce fichier manque ou contient des erreurs, le serveur backend PLANTERA au démarrage.
+const { protect } = require("../middleware/auth");
 
-// Public routes - These remain unchanged as they were not protected
+// --- Routes Publiques ---
+// Ces routes ne nécessitent pas d'être connecté
 router.post("/register", register);
 router.post("/login", login);
 router.post("/forgotpassword", forgotPassword);
 router.put("/resetpassword/:resettoken", resetPassword);
 
-// --- SECURITY WARNING ---
-// The following routes were originally protected but the middleware is now commented out.
-// Access control should be implemented either here (if middleware becomes available)
-// or within the controller functions themselves.
-// Currently, these operations are potentially open to anyone, which is a MAJOR security risk,
-// especially for logout, getting user details (getMe), and updating passwords.
-// --- END SECURITY WARNING ---
+// --- Routes Protégées ---
+// Ces routes nécessitent un utilisateur connecté (token JWT valide)
 
-// Protected routes (Middleware commented out)
-// router.get("/logout", protect, logout);
-router.get("/logout", logout); // WARNING: Unprotected - Allows anyone to trigger logout logic (might be less critical depending on implementation)
-
-// router.get("/me", protect, getMe);
-router.get("/me", getMe); // WARNING: MAJOR SECURITY RISK - Potentially allows anyone to get details of the logged-in user if the controller relies solely on req.user set by protect.
-
-// router.put("/updatepassword", protect, updatePassword);
-router.put("/updatepassword", updatePassword); // WARNING: MAJOR SECURITY RISK - Potentially allows anyone to attempt password updates if the controller relies solely on req.user set by protect.
+// Appliquer le middleware 'protect' spécifiquement à ces routes :
+router.get("/logout", protect, logout); // Nécessite d'être connecté pour se déconnecter
+router.get("/me", protect, getMe); // Nécessite d'être connecté pour obtenir ses propres infos
+router.put("/updatepassword", protect, updatePassword); // Nécessite d'être connecté pour changer son mdp
 
 module.exports = router;
-
