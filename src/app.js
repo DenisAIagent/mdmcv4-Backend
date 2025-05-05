@@ -1,4 +1,4 @@
-// src/app.js (CORRIGÉ : Chemin smartLinkRoutes.js mis à jour)
+// src/app.js (Revu: attention portée à la route /health et aux imports)
 
 require("dotenv").config(); // Charger les variables d'environnement en premier
 const express = require("express");
@@ -19,8 +19,7 @@ const landingPageRoutes = require("../routes/landingPage.routes.js");
 const reviewRoutes = require("../routes/reviews.routes.js");
 const chatbotRoutes = require("../routes/chatbot.routes.js"); // Non vérifié, suppose correct
 const artistRoutes = require("../routes/artists.routes.js");
-// *** LA CORRECTION ESSENTIELLE EST ICI ***
-const smartLinkRoutes = require("../routes/smartLinkRoutes.js"); // <-- Chemin Corrigé
+const smartLinkRoutes = require("../routes/smartLinkRoutes.js"); // Chemin corrigé
 
 // === Initialisation de l'application express ===
 const app = express();
@@ -61,7 +60,17 @@ if (process.env.NODE_ENV === "development") {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// === Montage des Routes API ===
+// === Point Important: Route /health ===
+// Cette route est définie ICI, AVANT les routes /api/*
+// et AVANT le gestionnaire 404 final.
+// Elle doit être appelée via VOTRE_URL_BACKEND/health (SANS /api/)
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "MDMC Backend API is running" });
+});
+// === Fin Point Important /health ===
+
+// === Montage des Routes API (/api/...) ===
+// Toutes les routes définies dans les fichiers .routes.js seront préfixées par /api
 const apiBasePath = "/api/";
 
 app.use(`${apiBasePath}auth`, authRoutes);
@@ -72,14 +81,12 @@ app.use(`${apiBasePath}landing-pages`, landingPageRoutes);
 app.use(`${apiBasePath}reviews`, reviewRoutes);
 app.use(`${apiBasePath}chatbot`, chatbotRoutes);
 app.use(`${apiBasePath}artists`, artistRoutes);
-app.use(`${apiBasePath}smartlinks`, smartLinkRoutes); // Utilise la variable corrigée
-
-// === Endpoint de Vérification de Santé ===
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok", message: "MDMC Backend API is running" });
-});
+app.use(`${apiBasePath}smartlinks`, smartLinkRoutes);
 
 // === Gestionnaire 404 Not Found ===
+// Ce gestionnaire attrape toutes les requêtes qui n'ont correspondu
+// à AUCUNE des routes définies ci-dessus (y compris /health ou les routes /api/*).
+// Il DOIT être défini APRÈS toutes les autres routes.
 app.use((req, res, next) => {
     res.status(404).json({
       success: false,
@@ -89,6 +96,8 @@ app.use((req, res, next) => {
 
 
 // === Middleware Global de Gestion des Erreurs ===
+// Ce middleware attrape les erreurs survenues dans les routes précédentes.
+// Il DOIT être défini en DERNIER.
 app.use((err, req, res, next) => {
   console.error("Capture Middleware Erreur:", err.name, err.message);
   if (process.env.NODE_ENV === "development") {
@@ -98,6 +107,7 @@ app.use((err, req, res, next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal Server Error";
 
+  // Gestion spécifique des erreurs Mongoose / CORS
   if (err.name === "CastError") {
       message = `Ressource non trouvée avec l'ID ${err.value}`;
       statusCode = 404;
@@ -146,7 +156,7 @@ mongoose
     process.exit(1);
   });
 
-// Gérer les rejets de promesses non interceptés
+// Gestionnaires pour 'unhandledRejection' et 'uncaughtException' (restent inchangés)
 process.on("unhandledRejection", (err, promise) => {
   console.error(`Rejet non traité: ${err.name} - ${err.message}`);
   if (server) {
@@ -159,7 +169,6 @@ process.on("unhandledRejection", (err, promise) => {
   }
 });
 
-// Gérer les exceptions non interceptées
 process.on('uncaughtException', (err) => {
   console.error(`Exception non traitée: ${err.name} - ${err.message}`);
   console.error(err.stack);
