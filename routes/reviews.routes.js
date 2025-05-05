@@ -1,36 +1,37 @@
-// routes/reviews.routes.js (Corrected & Middleware commented out)
+// routes/reviews.routes.js (Chemin contrôleur CORRIGÉ, Middleware commenté)
 
 const express = require("express");
+
+// *** LA CORRECTION ESSENTIELLE EST ICI ***
 const {
   createReview,
   getReviews,
   updateReviewStatus,
   deleteReview
-} = require("../controllers/reviews"); // Path seems correct assuming standard structure
+} = require("../controllers/reviewsController.js"); // <-- Chemin Corrigé pour pointer vers reviewsController.js
 
-// Middleware import commented out as user stated no dedicated middleware file exists
+// Importation Middleware commentée (cohérent avec les autres fichiers)
 // const { protect, authorize } = require("../middleware/auth");
 
 const router = express.Router();
 
-// Routes for the root ('/') :
+// Routes pour la racine ('/') :
 router.route("/")
-  .post(createReview) // Public endpoint to create a review
-  .get(getReviews);    // Public endpoint to get reviews (filtering logic might be in controller)
+  .post(createReview) // Point de terminaison public pour créer un avis
+  .get(getReviews);   // Point de terminaison public pour obtenir les avis (filtrage possible dans le contrôleur)
 
-// --- SECURITY WARNING ---
-// The following routes for specific review IDs are NOT protected by authentication or authorization middleware.
-// Access control should be implemented either here (if middleware becomes available)
-// or within the controller functions themselves.
-// Currently, PUT and DELETE operations are potentially open to anyone.
-// --- END SECURITY WARNING ---
+// --- ALERTE SÉCURITÉ ---
+// Les routes suivantes pour des ID d'avis spécifiques ne sont PAS protégées par middleware d'authentification ou d'autorisation.
+// Le contrôle d'accès devrait être implémenté soit ici (si le middleware devient disponible)
+// soit dans les fonctions du contrôleur elles-mêmes.
+// Actuellement, les opérations PUT et DELETE sont potentiellement ouvertes à tous.
+// --- FIN ALERTE SÉCURITÉ ---
 
-// Routes for operations on a specific review via its ID ('/:id') :
+// Routes pour opérations sur un avis spécifique via son ID ('/:id') :
 router.route("/:id")
-  // .put(protect, authorize('admin'), updateReviewStatus) // Middleware commented out
-  .put(updateReviewStatus) // WARNING: Unprotected - Allows anyone to change review status
-  // .delete(protect, authorize('admin'), deleteReview); // Middleware commented out
-  .delete(deleteReview); // WARNING: Unprotected - Allows anyone to delete reviews
+  // .put(protect, authorize('admin'), updateReviewStatus) // Middleware commenté
+  .put(updateReviewStatus) // ATTENTION: Non protégé - Permet à quiconque de changer le statut d'un avis
+  // .delete(protect, authorize('admin'), deleteReview); // Middleware commenté
+  .delete(deleteReview); // ATTENTION: Non protégé - Permet à quiconque de supprimer des avis
 
 module.exports = router;
-
