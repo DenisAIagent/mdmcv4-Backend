@@ -1,4 +1,4 @@
-// routes/user.routes.js (Corrected & Middleware commented out)
+// routes/user.routes.js (Nettoyé et Sécurisé)
 
 const express = require("express");
 const {
@@ -7,35 +7,34 @@ const {
   createUser,
   updateUser,
   deleteUser
-} = require("../controllers/users");
+} = require("../controllers/users"); // Assurez-vous que ce chemin est correct
 
 const router = express.Router();
 
-// Middleware import commented out as user stated no dedicated middleware file exists
-// const { protect, authorize } = require("../middleware/auth");
+// --- IMPORTANT : Middleware de Sécurité ---
+// Le middleware est maintenant réactivé.
+// Assurez-vous que le fichier '../middleware/auth.js' existe et exporte
+// correctement les fonctions 'protect' et 'authorize'.
+// Si ce fichier manque ou contient des erreurs, le serveur backend PLANTERA au démarrage.
+const { protect, authorize } = require("../middleware/auth");
 
-// --- SECURITY WARNING ---
-// The following routes were originally protected by authentication and authorization middleware (protect, authorize("admin")).
-// These middlewares are now commented out because the required file ('../middleware/auth') was not found.
-// Access control should be re-implemented either here (if middleware becomes available)
-// or within the controller functions themselves.
-// Currently, ALL user management operations (GET, POST, PUT, DELETE) are potentially open to anyone,
-// which is a MAJOR security risk.
-// --- END SECURITY WARNING ---
+// Appliquer la protection à toutes les routes de ce fichier
+// 'protect' vérifie si l'utilisateur est connecté (token JWT valide)
+// 'authorize('admin')' vérifie si l'utilisateur connecté a le rôle 'admin'
+router.use(protect);
+router.use(authorize("admin"));
 
-// Apply protection and authorization to all routes (Middleware commented out)
-// router.use(protect);
-// router.use(authorize("admin"));
+// --- Routes Utilisateurs (maintenant protégées) ---
 
-// User routes (WARNING: Unprotected)
+// Route pour la racine (/api/users/ ou /api/v1/users/ selon votre app.js)
 router.route("/")
-  .get(getUsers)
-  .post(createUser);
+  .get(getUsers)   // Seuls les admins peuvent lister les utilisateurs
+  .post(createUser); // Seuls les admins peuvent créer des utilisateurs
 
+// Route pour un ID spécifique (/api/users/:id ou /api/v1/users/:id)
 router.route("/:id")
-  .get(getUser)
-  .put(updateUser)
-  .delete(deleteUser);
+  .get(getUser)      // Seuls les admins peuvent voir un utilisateur spécifique
+  .put(updateUser)   // Seuls les admins peuvent mettre à jour un utilisateur
+  .delete(deleteUser); // Seuls les admins peuvent supprimer un utilisateur
 
 module.exports = router;
-
