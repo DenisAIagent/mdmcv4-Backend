@@ -1,4 +1,4 @@
-// routes/chatbot.routes.js (Corrected & Middleware commented out)
+// routes/chatbot.routes.js (Middleware Réactivé)
 
 const express = require("express");
 const {
@@ -6,33 +6,25 @@ const {
   updateConfig,
   sendMessage,
   getDocumentation
-} = require("../controllers/chatbot");
+} = require("../controllers/chatbot.js"); // Chemin correct vers chatbot.js
 
 const router = express.Router();
 
-// Middleware import commented out as user stated no dedicated middleware file exists
-// const { protect, authorize } = require("../middleware/auth");
+// Importation Middleware DÉCOMMENTÉE
+const { protect, authorize } = require("../middleware/auth");
 
-// --- SECURITY WARNING ---
-// The following routes were originally protected by authentication and authorization middleware (protect, authorize("admin")).
-// These middlewares are now commented out because the required file (".//middleware/auth") was not found.
-// Access control should be re-implemented either here (if middleware becomes available)
-// or within the controller functions themselves.
-// Currently, ALL chatbot operations are potentially open to anyone,
-// which is a MAJOR security risk.
-// --- END SECURITY WARNING ---
+// Application de la protection et autorisation DÉCOMMENTÉE
+// Protège TOUTES les routes définies ci-dessous
+// Adaptez si certaines routes doivent être publiques ou avoir d'autres rôles
+router.use(protect);
+router.use(authorize("admin"));
 
-// Apply protection and authorization to all routes (Middleware commented out)
-// router.use(protect);
-// router.use(authorize("admin"));
-
-// Routes for the chatbot (WARNING: Unprotected)
-router.route("/config")
+// Routes for the chatbot (MAINTENANT PROTÉGÉES)
+router.route("/config")         // GET & PUT /api/chatbot/config
   .get(getConfig)
   .put(updateConfig);
 
-router.post("/message", sendMessage);
-router.get("/documentation", getDocumentation);
+router.post("/message", sendMessage); // POST /api/chatbot/message
+router.get("/documentation", getDocumentation); // GET /api/chatbot/documentation
 
 module.exports = router;
-
