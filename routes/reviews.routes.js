@@ -1,37 +1,33 @@
-// routes/reviews.routes.js (Chemin contrôleur CORRIGÉ, Middleware commenté)
+// routes/reviews.routes.js (Middleware Réactivé pour PUT/DELETE)
 
 const express = require("express");
 
-// *** LA CORRECTION ESSENTIELLE EST ICI ***
 const {
   createReview,
   getReviews,
   updateReviewStatus,
   deleteReview
-} = require("../controllers/reviewsController.js"); // <-- Chemin Corrigé pour pointer vers reviewsController.js
+} = require("../controllers/reviewsController.js"); // Chemin contrôleur OK
 
-// Importation Middleware commentée (cohérent avec les autres fichiers)
-// const { protect, authorize } = require("../middleware/auth");
+// Importation Middleware DÉCOMMENTÉE
+const { protect, authorize } = require("../middleware/auth");
 
 const router = express.Router();
 
-// Routes pour la racine ('/') :
+// --- Routes PUBLIQUES ---
+// Laisser ces routes accessibles sans authentification/autorisation
+
 router.route("/")
-  .post(createReview) // Point de terminaison public pour créer un avis
-  .get(getReviews);   // Point de terminaison public pour obtenir les avis (filtrage possible dans le contrôleur)
+  .post(createReview) // Tout le monde peut poster un avis (il sera 'pending')
+  .get(getReviews);   // Tout le monde peut lister les avis (le contrôleur filtre peut-être par statut 'approved' pour les non-admins)
 
-// --- ALERTE SÉCURITÉ ---
-// Les routes suivantes pour des ID d'avis spécifiques ne sont PAS protégées par middleware d'authentification ou d'autorisation.
-// Le contrôle d'accès devrait être implémenté soit ici (si le middleware devient disponible)
-// soit dans les fonctions du contrôleur elles-mêmes.
-// Actuellement, les opérations PUT et DELETE sont potentiellement ouvertes à tous.
-// --- FIN ALERTE SÉCURITÉ ---
+// --- Routes PROTÉGÉES (Admin seulement) ---
+// Appliquer le middleware uniquement à ces routes spécifiques
 
-// Routes pour opérations sur un avis spécifique via son ID ('/:id') :
 router.route("/:id")
-  // .put(protect, authorize('admin'), updateReviewStatus) // Middleware commenté
-  .put(updateReviewStatus) // ATTENTION: Non protégé - Permet à quiconque de changer le statut d'un avis
-  // .delete(protect, authorize('admin'), deleteReview); // Middleware commenté
-  .delete(deleteReview); // ATTENTION: Non protégé - Permet à quiconque de supprimer des avis
+  // Seul un admin connecté peut mettre à jour le statut (approuver/rejeter)
+  .put(protect, authorize('admin'), updateReviewStatus)
+  // Seul un admin connecté peut supprimer un avis
+  .delete(protect, authorize('admin'), deleteReview);
 
 module.exports = router;
