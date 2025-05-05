@@ -1,7 +1,7 @@
 // models/Artist.js
 
 const mongoose = require('mongoose');
-const slugify = require('slugify'); // Vous devrez installer cette dépendance : npm install slugify
+const slugify = require('slugify'); // Assurez-vous que c'est installé: npm install slugify
 
 const artistSchema = new mongoose.Schema(
   {
@@ -15,7 +15,7 @@ const artistSchema = new mongoose.Schema(
     slug: {
       type: String,
       unique: true, // Garantit que chaque slug est unique
-      // Le slug sera généré automatiquement, pas besoin de le rendre 'required' ici
+      index: true   // Ajout d'un index pour améliorer les performances de recherche par slug
     },
     bio: {
       type: String,
@@ -27,8 +27,32 @@ const artistSchema = new mongoose.Schema(
       trim: true,
       // Vous pourriez ajouter une validation de format d'URL ici si nécessaire
       // match: [/https?:\/\/.+\..+/, 'Veuillez entrer une URL valide pour l\'image']
-    }
-    // Pas besoin de déclarer createdAt et updatedAt explicitement
+    },
+    // CHAMP AJOUTÉ : Site web de l'artiste
+    websiteUrl: {
+        type: String,
+        trim: true
+        // Ajouter une validation de format URL si souhaité
+    },
+    // CHAMP AJOUTÉ : Liens sociaux (tableau d'objets)
+    socialLinks: [
+        {
+            platform: {
+                type: String,
+                required: [true, "La plateforme sociale est requise (ex: spotify, instagram)."],
+                trim: true
+                // Optionnel: Utiliser un enum si la liste des plateformes est fixe
+                // enum: ['spotify', 'instagram', 'facebook', 'youtube', 'soundcloud', 'tiktok', 'website', 'other']
+            },
+            url: {
+                type: String,
+                required: [true, "L'URL du lien social est requise."],
+                trim: true
+                // Ajouter une validation de format URL si souhaité
+            },
+             _id: false // Généralement pas besoin d'ID unique pour chaque lien social
+        }
+    ]
   },
   {
     timestamps: true, // Ajoute automatiquement les champs createdAt et updatedAt gérés par Mongoose
@@ -48,15 +72,12 @@ artistSchema.pre('save', function(next) {
   this.slug = slugify(this.name, {
     lower: true,      // Convertit en minuscules
     strict: true,     // Supprime les caractères spéciaux non autorisés dans les URL (!, @, #, etc.)
-    remove: /[*+~.()'"!:@]/g // Vous pouvez personnaliser les caractères à supprimer si besoin
+    remove: /[*+~.()'"!:@]/g // Conserve ta personnalisation si elle te convient
   });
-
-  // Vous pourriez ajouter ici une logique pour gérer les collisions de slugs si nécessaire,
-  // bien que le `unique: true` dans le schéma lèvera une erreur si une collision se produit
-  // lors de la tentative de sauvegarde par MongoDB.
-
   next(); // Passe au middleware ou à l'opération de sauvegarde suivante
 });
+
+// (Optionnel mais recommandé) Ajouter la validation d'URL via un hook pre('validate') si besoin
 
 // Création du modèle à partir du schéma
 const Artist = mongoose.model('Artist', artistSchema);
