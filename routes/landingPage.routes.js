@@ -1,8 +1,7 @@
-// routes/landingPage.routes.js (Chemin contrôleur CORRIGÉ, Middleware toujours commenté)
+// routes/landingPage.routes.js (Middleware Réactivé)
 
 const express = require("express");
 
-// *** LA CORRECTION ESSENTIELLE EST ICI ***
 const {
   getTemplates,
   getTemplate,
@@ -15,49 +14,45 @@ const {
   deleteLandingPage,
   previewLandingPage
   // Assurez-vous que toutes les fonctions utilisées dans les routes sont bien importées ici
-} = require("../controllers/landingPageController.js"); // <-- Chemin Corrigé
+} = require("../controllers/landingPageController.js"); // <-- Chemin Contrôleur OK
 
 const router = express.Router();
 
-// Importation du Middleware commentée (comme dans votre version précédente)
-// const { protect, authorize } = require("../middleware/auth");
+// Importation Middleware DÉCOMMENTÉE
+const { protect, authorize } = require("../middleware/auth");
 
-// --- ALERTE SÉCURITÉ ---
-// Le Middleware reste commenté. Le contrôle d'accès doit être réimplémenté.
-// Les routes Landing Page sont actuellement NON PROTÉGÉES.
-// --- FIN ALERTE SÉCURITÉ ---
+// Application de la protection et autorisation DÉCOMMENTÉE
+// Protège TOUTES les routes définies ci-dessous dans ce fichier
+router.use(protect);        // 1. Vérifie si connecté
+router.use(authorize("admin")); // 2. Vérifie si admin
 
-// Application de la protection et autorisation (Middleware commenté)
-// router.use(protect);
-// router.use(authorize("admin")); // Adaptez le rôle si nécessaire
-
-// --- Routes Landing Pages ---
+// --- Routes Landing Pages (MAINTENANT PROTÉGÉES) ---
 
 // Routes pour les Templates
 router.route('/templates')
-  .get(getTemplates);
+  .get(getTemplates);       // GET /api/landing-pages/templates
 router.route('/templates/:id')
-  .get(getTemplate);
+  .get(getTemplate);        // GET /api/landing-pages/templates/:id
 
-// Routes principales pour les Landing Pages (ATTENTION : Non protégées)
+// Routes principales pour les Landing Pages
 router.route('/')
-  .get(getLandingPages)
-  .post(createLandingPage);
+  .get(getLandingPages)     // GET /api/landing-pages
+  .post(createLandingPage);   // POST /api/landing-pages
 
 router.route('/:id')
-  .get(getLandingPage)
-  .put(updateLandingPage)
-  .delete(deleteLandingPage);
+  .get(getLandingPage)      // GET /api/landing-pages/:id
+  .put(updateLandingPage)   // PUT /api/landing-pages/:id
+  .delete(deleteLandingPage); // DELETE /api/landing-pages/:id
 
-// Routes pour actions spécifiques (utilisation de POST car elles modifient l'état)
+// Routes pour actions spécifiques
 router.route('/:id/publish')
-  .post(publishLandingPage);
+  .post(publishLandingPage); // POST /api/landing-pages/:id/publish
 
 router.route('/:id/unpublish')
-  .post(unpublishLandingPage);
+  .post(unpublishLandingPage); // POST /api/landing-pages/:id/unpublish
 
 router.route('/:id/preview')
-  .get(previewLandingPage);
+  .get(previewLandingPage);   // GET /api/landing-pages/:id/preview
 
 
 module.exports = router;
