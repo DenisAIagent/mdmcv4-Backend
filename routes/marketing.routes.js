@@ -1,6 +1,8 @@
-// routes/marketing.routes.js (Corrected & Middleware commented out)
+// routes/marketing.routes.js (Chemin contrôleur CORRIGÉ, Middleware toujours commenté)
 
 const express = require("express");
+
+// *** LA CORRECTION ESSENTIELLE EST ICI ***
 const {
   getIntegrations,
   getIntegration,
@@ -8,27 +10,23 @@ const {
   updateIntegration,
   deleteIntegration,
   testIntegration
-} = require("../controllers/marketing");
+} = require("../controllers/marketingController.js"); // <-- Chemin Corrigé
 
 const router = express.Router();
 
-// Middleware import commented out as user stated no dedicated middleware file exists
+// Importation du Middleware commentée (comme dans votre version précédente)
 // const { protect, authorize } = require("../middleware/auth");
 
-// --- SECURITY WARNING ---
-// The following routes were originally protected by authentication and authorization middleware (protect, authorize("admin")).
-// These middlewares are now commented out because the required file (".//middleware/auth") was not found.
-// Access control should be re-implemented either here (if middleware becomes available)
-// or within the controller functions themselves.
-// Currently, ALL marketing integration operations are potentially open to anyone,
-// which is a MAJOR security risk.
-// --- END SECURITY WARNING ---
+// --- ALERTE SÉCURITÉ ---
+// Le Middleware reste commenté. Le contrôle d'accès doit être réimplémenté.
+// Les routes Marketing sont actuellement NON PROTÉGÉES.
+// --- FIN ALERTE SÉCURITÉ ---
 
-// Apply protection and authorization to all routes (Middleware commented out)
+// Application de la protection et autorisation (Middleware commenté)
 // router.use(protect);
 // router.use(authorize("admin"));
 
-// Routes for marketing integrations (WARNING: Unprotected)
+// Routes pour les intégrations marketing (ATTENTION : Non protégées)
 router.route("/")
   .get(getIntegrations)
   .post(createIntegration);
@@ -42,4 +40,3 @@ router.route("/:id/test")
   .post(testIntegration);
 
 module.exports = router;
-
