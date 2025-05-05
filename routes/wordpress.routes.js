@@ -1,4 +1,4 @@
-// routes/wordpress.routes.js (Corrected & Middleware commented out)
+// routes/wordpress.routes.js (Middleware Réactivé)
 
 const express = require("express");
 const {
@@ -10,37 +10,28 @@ const {
   getPosts,
   getPost,
   deletePost
-} = require("../controllers/wordpress");
+} = require("../controllers/wordpress.js"); // Chemin correct vers wordpress.js
 
 const router = express.Router();
 
-// Middleware import commented out as user stated no dedicated middleware file exists
-// const { protect, authorize } = require("../middleware/auth");
+// Importation Middleware DÉCOMMENTÉE
+const { protect, authorize } = require("../middleware/auth");
 
-// --- SECURITY WARNING ---
-// The following routes were originally protected by authentication and authorization middleware (protect, authorize("admin")).
-// These middlewares are now commented out because the required file (".//middleware/auth") was not found.
-// Access control should be re-implemented either here (if middleware becomes available)
-// or within the controller functions themselves.
-// Currently, ALL WordPress integration operations are potentially open to anyone,
-// which is a MAJOR security risk.
-// --- END SECURITY WARNING ---
+// Application de la protection et autorisation DÉCOMMENTÉE
+// Protège TOUTES les routes définies ci-dessous
+router.use(protect);
+router.use(authorize("admin"));
 
-// Apply protection and authorization to all routes (Middleware commented out)
-// router.use(protect);
-// router.use(authorize("admin"));
+// Routes for WordPress connection (MAINTENANT PROTÉGÉES)
+router.post("/connect", connect);           // POST /api/wordpress/connect
+router.post("/disconnect", disconnect);       // POST /api/wordpress/disconnect
+router.get("/status", getConnectionStatus);     // GET /api/wordpress/status
+router.put("/settings", updateConnectionSettings); // PUT /api/wordpress/settings
+router.post("/sync", syncPosts);            // POST /api/wordpress/sync
 
-// Routes for WordPress connection (WARNING: Unprotected)
-router.post("/connect", connect);
-router.post("/disconnect", disconnect);
-router.get("/status", getConnectionStatus);
-router.put("/settings", updateConnectionSettings);
-router.post("/sync", syncPosts);
-
-// Routes for WordPress posts (WARNING: Unprotected)
-router.get("/posts", getPosts);
-router.get("/posts/:id", getPost);
-router.delete("/posts/:id", deletePost);
+// Routes for WordPress posts (MAINTENANT PROTÉGÉES)
+router.get("/posts", getPosts);             // GET /api/wordpress/posts
+router.get("/posts/:id", getPost);          // GET /api/wordpress/posts/:id
+router.delete("/posts/:id", deletePost);      // DELETE /api/wordpress/posts/:id
 
 module.exports = router;
-
