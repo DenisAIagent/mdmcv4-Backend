@@ -1,8 +1,7 @@
-// routes/marketing.routes.js (Chemin contrôleur CORRIGÉ, Middleware toujours commenté)
+// routes/marketing.routes.js (Middleware Réactivé)
 
 const express = require("express");
 
-// *** LA CORRECTION ESSENTIELLE EST ICI ***
 const {
   getIntegrations,
   getIntegration,
@@ -10,33 +9,29 @@ const {
   updateIntegration,
   deleteIntegration,
   testIntegration
-} = require("../controllers/marketingController.js"); // <-- Chemin Corrigé
+} = require("../controllers/marketingController.js"); // Chemin contrôleur OK
 
 const router = express.Router();
 
-// Importation du Middleware commentée (comme dans votre version précédente)
-// const { protect, authorize } = require("../middleware/auth");
+// Importation Middleware DÉCOMMENTÉE
+const { protect, authorize } = require("../middleware/auth");
 
-// --- ALERTE SÉCURITÉ ---
-// Le Middleware reste commenté. Le contrôle d'accès doit être réimplémenté.
-// Les routes Marketing sont actuellement NON PROTÉGÉES.
-// --- FIN ALERTE SÉCURITÉ ---
+// Application de la protection et autorisation DÉCOMMENTÉE
+// Protège TOUTES les routes définies ci-dessous dans ce fichier
+router.use(protect);        // 1. Vérifie si l'utilisateur est connecté
+router.use(authorize("admin")); // 2. Vérifie si l'utilisateur connecté est admin
 
-// Application de la protection et autorisation (Middleware commenté)
-// router.use(protect);
-// router.use(authorize("admin"));
-
-// Routes pour les intégrations marketing (ATTENTION : Non protégées)
+// Routes pour les intégrations marketing (MAINTENANT PROTÉGÉES)
 router.route("/")
-  .get(getIntegrations)
-  .post(createIntegration);
+  .get(getIntegrations)     // GET /api/marketing
+  .post(createIntegration);  // POST /api/marketing
 
 router.route("/:id")
-  .get(getIntegration)
-  .put(updateIntegration)
-  .delete(deleteIntegration);
+  .get(getIntegration)      // GET /api/marketing/:id
+  .put(updateIntegration)   // PUT /api/marketing/:id
+  .delete(deleteIntegration); // DELETE /api/marketing/:id
 
 router.route("/:id/test")
-  .post(testIntegration);
+  .post(testIntegration);   // POST /api/marketing/:id/test
 
 module.exports = router;
