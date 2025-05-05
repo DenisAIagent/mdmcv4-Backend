@@ -1,6 +1,6 @@
-// src/app.js (Updated: Reverted API base path to /api/ as requested)
+// src/app.js (Version finale confirmée par l'architecture fournie)
 
-require("dotenv").config(); // Load environment variables from .env file FIRST
+require("dotenv").config(); // Charger les variables d'environnement en premier
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -8,66 +8,66 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");
 
-// === Import Routes ===
-// Assuming 'routes' directory is a sibling of 'src' directory (../)
-// If 'routes' is INSIDE 'src', change paths to './routes/...'
-const authRoutes = require("../routes/auth.routes");
-const userRoutes = require("../routes/user.routes");
-const marketingRoutes = require("../routes/marketing.routes");
-const wordpressRoutes = require("../routes/wordpress.routes");
-const landingPageRoutes = require("../routes/landingPage.routes");
-const reviewRoutes = require("../routes/reviews.routes");
-const chatbotRoutes = require("../routes/chatbot.routes");
-const artistRoutes = require("../routes/artists.js");
-const smartLinkRoutes = require("../routes/smartLinkRoutes");
+// === Importation des Routes ===
+// Le préfixe '../' est correct car 'routes/' est un dossier frère de 'src/'
+// Les noms de fichiers .routes.js sont confirmés par la capture d'écran.
 
-// === Initialize express app ===
+const authRoutes = require("../routes/auth.routes.js");
+const userRoutes = require("../routes/user.routes.js");
+const marketingRoutes = require("../routes/marketing.routes.js");
+const wordpressRoutes = require("../routes/wordpress.routes.js");
+const landingPageRoutes = require("../routes/landingPage.routes.js");
+const reviewRoutes = require("../routes/reviews.routes.js");
+const chatbotRoutes = require("../routes/chatbot.routes.js");
+const artistRoutes = require("../routes/artists.routes.js"); // Confirmé: artists.routes.js
+const smartLinkRoutes = require("../routes/smartLink.routes.js"); // Confirmé: smartLink.routes.js
+
+// === Initialisation de l'application express ===
 const app = express();
 
-// === Security Middleware ===
-app.use(helmet()); // Set various HTTP headers for security
+// === Middlewares de Sécurité ===
+app.use(helmet()); // Définit divers en-têtes HTTP pour la sécurité
 
-// === CORS Configuration ===
-// This configuration allows your frontend domain
+// === Configuration CORS ===
+// Autorise les domaines de votre frontend et le développement local
 const allowedOrigins = [
-  'https://www.mdmcmusicads.com',           // Production frontend URL
-  'https://mdmcv4-frontend-production.up.railway.app', // Railway frontend URL
-  // Add localhost URLs for local development testing if needed:
-  'http://localhost:5173',                // Example for Vite local dev server
-  'http://localhost:3000'                 // Example for Create React App local dev server
+  'https://www.mdmcmusicads.com',            // URL frontend Production
+  'https://mdmcv4-frontend-production.up.railway.app', // URL frontend Railway
+  'http://localhost:5173',                   // Serveur dev local Vite (exemple)
+  'http://localhost:3000'                    // Serveur dev local CRA (exemple)
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl) or from allowed list
+    // Autorise les requêtes sans origine (ex: mobile, curl) ou depuis la liste
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      console.warn(`CORS Error: Origin ${origin} not allowed.`); // Log denied origins
-      callback(new Error('Not allowed by CORS'));
+      console.warn(`Erreur CORS: Origine ${origin} non autorisée.`);
+      callback(new Error('Non autorisé par CORS'));
     }
   },
-  credentials: true, // Allow cookies, authorization headers etc.
+  credentials: true, // Autorise les cookies, en-têtes d'autorisation, etc.
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   optionsSuccessStatus: 204
 };
 
-app.use(cors(corsOptions)); // Use configured CORS - Placed early
+app.use(cors(corsOptions)); // Utiliser la configuration CORS - Placé tôt
 
-// === Logging Middleware ===
+// === Middleware de Logging ===
 if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev")); // Use morgan for logging in development
+  app.use(morgan("dev")); // Utiliser morgan pour les logs en développement
 }
 
-// === Body Parsing Middleware ===
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+// === Middleware de Parsing du Corps de Requête ===
+app.use(express.json()); // Pour parser les corps JSON
+app.use(express.urlencoded({ extended: true })); // Pour parser les corps URL-encoded
 
-// === API Routes Mounting (Reverted to /api/ base path) ===
-// Using /api/ as the standard base path for all API routes (as requested)
-const apiBasePath = "/api/"; // Reverted back from "/api/v1/"
+// === Montage des Routes API ===
+// Utilisation de /api/ comme chemin de base standard
+const apiBasePath = "/api/";
 
-app.use(`${apiBasePath}auth`, authRoutes); // Note: No trailing slash in base path, added here implicitly
+app.use(`${apiBasePath}auth`, authRoutes);
 app.use(`${apiBasePath}users`, userRoutes);
 app.use(`${apiBasePath}marketing`, marketingRoutes);
 app.use(`${apiBasePath}wordpress`, wordpressRoutes);
@@ -77,13 +77,13 @@ app.use(`${apiBasePath}chatbot`, chatbotRoutes);
 app.use(`${apiBasePath}artists`, artistRoutes);
 app.use(`${apiBasePath}smartlinks`, smartLinkRoutes);
 
-// === Health Check Endpoint ===
+// === Endpoint de Vérification de Santé ===
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "MDMC Backend API is running" });
 });
 
-// === 404 Not Found Handler ===
-// This should come AFTER all other valid routes
+// === Gestionnaire 404 Not Found ===
+// Doit venir APRÈS toutes les routes valides
 app.use((req, res, next) => {
     res.status(404).json({
       success: false,
@@ -92,35 +92,39 @@ app.use((req, res, next) => {
 });
 
 
-// === Global Error Handling Middleware ===
-// This should come last, after the 404 handler
+// === Middleware Global de Gestion des Erreurs ===
+// Doit venir en dernier, après le gestionnaire 404
 app.use((err, req, res, next) => {
-  console.error("Error Middleware Catch:", err.name, err.message);
+  console.error("Capture Middleware Erreur:", err.name, err.message);
+  // Afficher la stack trace seulement en développement
   if (process.env.NODE_ENV === "development") {
       console.error(err.stack);
   }
 
+  // Déterminer le code de statut et le message
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal Server Error";
 
-  // Handle specific Mongoose errors
-  if (err.name === "CastError") {
-      message = `Resource not found with id of ${err.value}`;
+  // Gestion spécifique des erreurs Mongoose
+  if (err.name === "CastError") { // ID mal formé
+      message = `Ressource non trouvée avec l'ID ${err.value}`;
       statusCode = 404;
   }
-  if (err.code === 11000) {
+  if (err.code === 11000) { // Clé unique dupliquée
       const field = Object.keys(err.keyValue)[0];
-      message = `Duplicate field value entered for: ${field}`;
+      message = `Valeur dupliquée pour le champ: ${field}`;
       statusCode = 400;
   }
-  if (err.name === "ValidationError") {
+  if (err.name === "ValidationError") { // Échec de validation du modèle
       message = Object.values(err.errors).map(val => val.message).join(', ');
       statusCode = 400;
   }
-  if (message === 'Not allowed by CORS') {
+  // Gestion spécifique de l'erreur CORS personnalisée
+  if (message === 'Non autorisé par CORS') {
     statusCode = 403; // Forbidden
   }
 
+  // Envoyer la réponse d'erreur JSON
   res.status(statusCode).json({
       success: false,
       error: message
@@ -128,56 +132,57 @@ app.use((err, req, res, next) => {
 });
 
 
-// === Database Connection & Server Start ===
-const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI;
+// === Connexion à la Base de Données & Démarrage du Serveur ===
+const PORT = process.env.PORT || 5000; // Utilise le port défini par Railway ou 5000 par défaut
+const MONGODB_URI = process.env.MONGODB_URI; // Doit être défini dans les variables d'environnement Railway
 
 if (!MONGODB_URI) {
-    console.error("FATAL ERROR: MONGODB_URI environment variable is not defined.");
-    process.exit(1);
+    console.error("ERREUR FATALE: La variable d'environnement MONGODB_URI n'est pas définie.");
+    process.exit(1); // Quitter si l'URI de la BDD manque
 }
 
-let server;
+let server; // Pour pouvoir fermer le serveur proprement
 
 mongoose
-  .connect(MONGODB_URI)
+  .connect(MONGODB_URI) // Utilisation directe de l'URI
   .then(() => {
-    console.log(`Successfully connected to MongoDB.`);
+    console.log(`Connecté avec succès à MongoDB.`);
+    // Démarrer le serveur seulement après la connexion réussie à la BDD
     server = app.listen(PORT, () => {
-      console.log(`Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
+      console.log(`Serveur démarré en mode ${process.env.NODE_ENV || "development"} sur le port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
-    process.exit(1);
+    console.error("Erreur de connexion MongoDB:", err);
+    process.exit(1); // Quitter si la connexion BDD échoue
   });
 
-// Handle unhandled promise rejections
+// Gérer les rejets de promesses non interceptés
 process.on("unhandledRejection", (err, promise) => {
-  console.error(`Unhandled Rejection: ${err.name} - ${err.message}`);
+  console.error(`Rejet non traité: ${err.name} - ${err.message}`);
   if (server) {
-    server.close(() => {
-        console.log("Server closed due to unhandled rejection.");
+    server.close(() => { // Fermer le serveur proprement
+        console.log("Serveur arrêté suite à un rejet non traité.");
         process.exit(1);
     });
   } else {
-    process.exit(1);
+    process.exit(1); // Quitter si le serveur n'a pas démarré
   }
 });
 
-// Handle uncaught exceptions
+// Gérer les exceptions non interceptées
 process.on('uncaughtException', (err) => {
-  console.error(`Uncaught Exception: ${err.name} - ${err.message}`);
+  console.error(`Exception non traitée: ${err.name} - ${err.message}`);
   console.error(err.stack);
   if (server) {
-    server.close(() => {
-      console.log('Server closed due to uncaught exception.');
+    server.close(() => { // Fermer le serveur proprement
+      console.log('Serveur arrêté suite à une exception non traitée.');
       process.exit(1);
     });
   } else {
-    process.exit(1);
+    process.exit(1); // Quitter si le serveur n'a pas démarré
   }
 });
 
-
-module.exports = app; // Export app for potential testing
+// Exporter l'application (peut être utile pour les tests)
+module.exports = app;
