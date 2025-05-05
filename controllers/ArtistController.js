@@ -1,18 +1,30 @@
-// controllers/artistController.js
+// controllers/artistController.js (Updated)
 
-const Artist = require('../models/Artist'); // Importer le modèle Artist
-const SmartLink = require('../models/SmartLink'); // Importer SmartLink pour la suppression en cascade (optionnel)
-const asyncHandler = require('../middleware/asyncHandler'); // Utilitaire pour gérer les erreurs dans les fonctions async (voir note)
-const ErrorResponse = require('../utils/errorResponse'); // Utilitaire pour standardiser les erreurs (voir note)
+const Artist = require("../models/Artist"); // Importer le modèle Artist
+const SmartLink = require("../models/SmartLink"); // Importer SmartLink pour la suppression en cascade (optionnel)
+const asyncHandler = require("../middleware/asyncHandler"); // Utilitaire pour gérer les erreurs dans les fonctions async
+const ErrorResponse = require("../utils/errorResponse"); // Utilitaire pour standardiser les erreurs
 
 /**
  * @desc    Créer un nouvel artiste
  * @route   POST /api/v1/artists
- * @access  Private (Admin) - Logique d'accès à ajouter via middleware plus tard
+ * @access  Private (Admin)
  */
 exports.createArtist = asyncHandler(async (req, res, next) => {
-  // Le body de la requête contient les données (name, bio, artistImageUrl)
-  const artist = await Artist.create(req.body);
+  // Extraire les champs pertinents du body, y compris les nouveaux
+  const { name, bio, artistImageUrl, websiteUrl, socialLinks } = req.body;
+
+  // Créer l'objet artiste avec les champs extraits
+  // Mongoose ignorera les champs undefined si non fournis dans la requête
+  const artistData = {
+    name,
+    bio,
+    artistImageUrl,
+    websiteUrl,
+    socialLinks
+  };
+
+  const artist = await Artist.create(artistData);
 
   res.status(201).json({
     success: true,
@@ -26,7 +38,7 @@ exports.createArtist = asyncHandler(async (req, res, next) => {
  * @access  Public or Private (Admin)
  */
 exports.getAllArtists = asyncHandler(async (req, res, next) => {
-  // Optionnel: Ajoutez .sort() ou .select() selon vos besoins
+  // TODO: Implémenter la pagination et le filtrage/recherche comme dans smartLinkController si nécessaire pour l'admin
   const artists = await Artist.find().sort({ name: 1 }); // Tri par nom par défaut
 
   res.status(200).json({
@@ -45,7 +57,6 @@ exports.getArtistBySlug = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findOne({ slug: req.params.artistSlug });
 
   if (!artist) {
-    // Si aucun artiste n'est trouvé avec ce slug
     return next(new ErrorResponse(`Artiste non trouvé avec le slug ${req.params.artistSlug}`, 404));
   }
 
@@ -69,31 +80,21 @@ exports.updateArtist = asyncHandler(async (req, res, next) => {
 
   // Mettre à jour les champs fournis dans req.body
   // Note: Cette approche (findOne puis save) assure que les hooks Mongoose (comme la génération de slug si le nom change) sont exécutés.
+  const allowedUpdates = ["name", "bio", "artistImageUrl", "websiteUrl", "socialLinks"];
+
   Object.keys(req.body).forEach(key => {
-      // S'assurer que seuls les champs modifiables sont mis à jour
-      if (key === 'name' || key === 'bio' || key === 'artistImageUrl') {
-         artist[key] = req.body[key];
-      }
+    if (allowedUpdates.includes(key)) {
+      // Pour socialLinks, on remplace entièrement le tableau
+      artist[key] = req.body[key];
+    }
   });
 
-  // Sauvegarder les modifications (déclenchera le hook pre('save'))
+  // Sauvegarder les modifications (déclenchera le hook pre('save') si name change)
   const updatedArtist = await artist.save();
-
-
-  /* // Alternative: findOneAndUpdate (plus direct mais ne lance pas les hooks 'save' par défaut)
-  const artist = await Artist.findOneAndUpdate(
-    { slug: req.params.artistSlug },
-    req.body,
-    {
-      new: true, // Retourne le document mis à jour
-      runValidators: true // Exécute les validateurs du schéma Mongoose
-    }
-  );
-  */
 
   res.status(200).json({
     success: true,
-    data: updatedArtist // Ou 'artist' si vous utilisez findOneAndUpdate
+    data: updatedArtist
   });
 });
 
@@ -109,19 +110,15 @@ exports.deleteArtist = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Artiste non trouvé avec le slug ${req.params.artistSlug}`, 404));
   }
 
-  // --- Considération Importante : Que faire des SmartLinks associés ? ---
-  // Option 1: Supprimer l'artiste uniquement (laisser les SmartLinks orphelins ou les gérer ailleurs)
-  // Option 2: Supprimer aussi tous les SmartLinks liés à cet artiste (suppression en cascade)
-
-  // // Pour l'Option 2 (Suppression en cascade - Décommentez si nécessaire) :
+  // Optionnel: Suppression en cascade des SmartLinks associés
   // await SmartLink.deleteMany({ artistId: artist._id });
-  // console.log(`SmartLinks de l'artiste ${artist.name} supprimés.`);
 
   // Suppression de l'artiste
-  await artist.deleteOne(); // Utiliser deleteOne() sur l'instance trouvée
+  await artist.deleteOne();
 
-  res.status(200).json({ // ou 204 sans contenu: res.status(204).send();
+  res.status(200).json({
     success: true,
-    data: {} // ou pas de data si 204
+    data: {}
   });
 });
+
