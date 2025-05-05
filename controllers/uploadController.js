@@ -1,4 +1,4 @@
-// backend/controllers/uploadController.js
+// backend/controllers/uploadController.js (Commentaire @route mis à jour)
 
 const asyncHandler = require("../middleware/asyncHandler");
 const ErrorResponse = require("../utils/errorResponse");
@@ -6,7 +6,7 @@ const cloudinary = require('cloudinary').v2; // Importer Cloudinary SDK v2
 const streamifier = require('streamifier'); // Pour transformer le buffer en stream lisible
 
 // --- Configurer Cloudinary ---
-// Lit les variables depuis process.env (chargées depuis .env ou l'environnement de l'hébergeur)
+// Lit les variables depuis process.env
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -17,7 +17,7 @@ cloudinary.config({
 
 /**
  * @desc    Téléverser un fichier image vers Cloudinary
- * @route   POST /api/v1/upload/image
+ * @route   POST /api/upload/image  <--- COMMENTAIRE MIS À JOUR (sans /v1/)
  * @access  Private (Admin)
  */
 exports.uploadImage = asyncHandler(async (req, res, next) => {
@@ -29,7 +29,6 @@ exports.uploadImage = asyncHandler(async (req, res, next) => {
   // Vérifier que la configuration Cloudinary est bien chargée
   if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
       console.error("Configuration Cloudinary incomplète. Vérifiez les variables d'environnement.");
-      // Ne pas exposer les détails de la config dans la réponse
       return next(new ErrorResponse("Erreur de configuration serveur pour l'upload.", 500));
   }
 
@@ -40,23 +39,16 @@ exports.uploadImage = asyncHandler(async (req, res, next) => {
   const uploadPromise = new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: "smartlink_images", // Nom du dossier dans Cloudinary (sera créé s'il n'existe pas)
-        // resource_type: "auto", // Laisse Cloudinary déterminer le type si besoin
-        // public_id: `unique_prefix_${Date.now()}` // Optionnel: Nom de fichier spécifique
-         // Par défaut, Cloudinary génère un ID unique sécurisé.
+        folder: "smartlink_images", // Nom du dossier dans Cloudinary
       },
       (error, result) => {
         if (error) {
           console.error('Erreur Cloudinary:', error);
-          // Rejeter la promesse avec une erreur standardisée
           return reject(new ErrorResponse(`Erreur lors de l'upload vers Cloudinary: ${error.message}`, 500));
         }
-        // Résoudre la promesse avec le résultat de l'upload
         resolve(result);
       }
     );
-
-    // Envoyer (pipe) le buffer du fichier dans le stream d'upload Cloudinary
     streamifier.createReadStream(fileBuffer).pipe(uploadStream);
   });
 
@@ -79,8 +71,7 @@ exports.uploadImage = asyncHandler(async (req, res, next) => {
     });
 
   } catch (err) {
-    // Gérer les erreurs (soit celles du reject, soit d'autres erreurs inattendues)
-    // Le middleware asyncHandler attrapera et passera l'erreur au gestionnaire global
+    // Gérer les erreurs
     next(err);
   }
   // --- Fin de la logique Cloudinary ---
