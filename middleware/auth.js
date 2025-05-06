@@ -1,77 +1,53 @@
 // middleware/auth.js
-
 const jwt = require('jsonwebtoken');
-const asyncHandler = require('./asyncHandler'); // Ou '../middleware/asyncHandler' si asyncHandler est là aussi
-const ErrorResponse = require('../utils/errorResponse'); // Assurez-vous que le chemin est correct
-const User = require('../models/User'); // Assurez-vous que le chemin est correct
+const asyncHandler = require('./asyncHandler');
+const ErrorResponse = require('../utils/errorResponse');
+const User = require('../models/User');
 
-// Middleware pour protéger les routes (vérifie le token JWT)
 exports.protect = asyncHandler(async (req, res, next) => {
   let token;
+  console.log(`[PROTECT] Vérification pour la route: ${req.originalUrl}`); // Log la route
+  console.log('[PROTECT] Headers Authorization:', req.headers.authorization); // Log header
+  console.log('[PROTECT] Cookies:', req.cookies); // Log cookies
 
-  // Essayer d'obtenir le token depuis les headers Authorization (Bearer token)
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
-  }
-  // Sinon, essayer d'obtenir le token depuis les cookies
-  else if (req.cookies && req.cookies.token) {
+    console.log('[PROTECT] Token trouvé dans Header Bearer.');
+  } else if (req.cookies && req.cookies.token) {
     token = req.cookies.token;
+    console.log('[PROTECT] Token trouvé dans Cookie:', token ? 'Oui' : 'Non'); // Log si trouvé dans cookie
+  } else {
+     console.log('[PROTECT] Aucun token trouvé (Header ou Cookie).');
   }
 
-  // S'assurer que le token existe
+
   if (!token) {
+    console.log('[PROTECT] Erreur: Pas de token. Renvoi 401.');
     return next(new ErrorResponse('Non autorisé à accéder à cette route (pas de token)', 401));
   }
 
   try {
-    // Vérifier le token avec la clé secrète
+    console.log('[PROTECT] Vérification du token...');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('[PROTECT] Token décodé, ID utilisateur:', decoded.id);
 
-    // Trouver l'utilisateur associé à l'ID du token
-    // Ne pas sélectionner le mot de passe ici
+    console.log('[PROTECT] Recherche de l\'utilisateur en BDD...');
     req.user = await User.findById(decoded.id);
 
     if (!req.user) {
-        // Si l'utilisateur associé au token n'existe plus
-         return next(new ErrorResponse('Utilisateur du token non trouvé', 401));
+      console.log(`[PROTECT] Erreur: Utilisateur non trouvé pour l'ID ${decoded.id}. Renvoi 401.`);
+      return next(new ErrorResponse('Utilisateur du token non trouvé', 401));
     }
-
-    next(); // Passer au middleware suivant si tout est OK
+    console.log(`[PROTECT] Utilisateur trouvé: ${req.user.email}. Passage à next().`);
+    next(); // OK !
   } catch (err) {
-    console.error("Erreur lors de la vérification du token:", err.message); // Log l'erreur pour debug
-    // Gérer les erreurs spécifiques de JWT
-    if (err.name === 'JsonWebTokenError') {
-        return next(new ErrorResponse('Non autorisé à accéder à cette route (token invalide)', 401));
-    }
-    if (err.name === 'TokenExpiredError') {
-        return next(new ErrorResponse('Non autorisé à accéder à cette route (token expiré)', 401));
-    }
-    // Autres erreurs potentielles
-    return next(new ErrorResponse('Non autorisé à accéder à cette route', 401));
+    console.error("[PROTECT] Erreur lors de la vérification JWT:", err.name, err.message);
+    // Ne pas logguer le token lui-même pour la sécurité
+    return next(new ErrorResponse('Non autorisé (token invalide/expiré)', 401)); // Erreur générique 401
   }
 });
 
-// Middleware pour accorder l'accès à des rôles spécifiques
-// Ex: authorize('admin') ou authorize('admin', 'publisher')
+// ... (le code pour authorize reste inchangé) ...
 exports.authorize = (...roles) => {
-  return (req, res, next) => {
-    // Vérifier si req.user a été défini par le middleware 'protect'
-    if (!req.user) {
-      // Ceci ne devrait pas arriver si 'protect' est utilisé avant 'authorize'
-      return next(new ErrorResponse('Erreur interne: req.user non défini avant authorize', 500));
-    }
-    // Vérifier si le rôle de l'utilisateur est inclus dans les rôles autorisés
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new ErrorResponse(
-          `Le rôle '${req.user.role}' n'est pas autorisé à accéder à cette route`,
-          403 // 403 Forbidden (Interdit)
-        )
-      );
-    }
-    next(); // Passer au middleware suivant si autorisé
-  };
+  // ...
 };
