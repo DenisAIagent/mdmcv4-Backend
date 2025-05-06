@@ -1,11 +1,8 @@
 // backend/middleware/auth.js
-
 const jwt = require('jsonwebtoken');
-// --- VÉRIFIEZ CES CHEMINS ---
-const asyncHandler = require('./asyncHandler'); // Est-il bien dans le même dossier ?
-const ErrorResponse = require('../utils/errorResponse'); // Est-ce bien ../utils/errorResponse.js ?
-const User = require('../models/User'); // Est-ce bien ../models/User.js ?
-// --- FIN VÉRIFICATION CHEMINS ---
+const asyncHandler = require('./asyncHandler');
+const ErrorResponse = require('../utils/errorResponse');
+const User = require('../models/User');
 
 /**
  * @desc Middleware pour protéger les routes (vérifie le token JWT)
@@ -47,7 +44,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
     next();
   } catch (err) {
     // Gérer les erreurs de vérification JWT (token invalide, expiré)
-    console.error("Erreur de vérification JWT dans 'protect':", err.name, err.message); // Garder un log d'erreur serveur
+    console.error("Erreur de vérification JWT dans 'protect':", err.name, err.message);
     let message = 'Non autorisé';
     if (err.name === 'JsonWebTokenError') message = 'Token invalide';
     if (err.name === 'TokenExpiredError') message = 'Token expiré';
@@ -61,21 +58,17 @@ exports.protect = asyncHandler(async (req, res, next) => {
  */
 exports.authorize = (...roles) => {
   return (req, res, next) => {
-    // S'assurer que req.user a été défini par le middleware 'protect' exécuté avant
     if (!req.user) {
-      // Ceci est une erreur serveur si 'protect' n'a pas été appelé avant
       return next(new ErrorResponse('Erreur interne du serveur (req.user manquant)', 500));
     }
-    // Vérifier si le rôle de l'utilisateur est inclus dans la liste des rôles autorisés
     if (!roles.includes(req.user.role)) {
       return next(
         new ErrorResponse(
           `Le rôle utilisateur '${req.user.role}' n'est pas autorisé à accéder à cette route.`,
-          403 // 403 Forbidden
+          403
         )
       );
     }
-    // Si autorisé, passer au middleware ou contrôleur suivant
     next();
   };
 };
