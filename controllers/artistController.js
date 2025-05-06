@@ -1,7 +1,6 @@
 // controllers/artistController.js (Updated)
 
 const Artist = require("../models/Artist"); // Importer le modèle Artist
-const SmartLink = require("../models/SmartLink"); // Importer SmartLink pour la suppression en cascade (optionnel)
 const asyncHandler = require("../middleware/asyncHandler"); // Utilitaire pour gérer les erreurs dans les fonctions async
 const ErrorResponse = require("../utils/errorResponse"); // Utilitaire pour standardiser les erreurs
 
@@ -10,7 +9,7 @@ const ErrorResponse = require("../utils/errorResponse"); // Utilitaire pour stan
  * @route   POST /api/v1/artists
  * @access  Private (Admin)
  */
-exports.createArtist = asyncHandler(async (req, res, next) => {
+exports.createArtist = asyncHandler(async (req, res) => {
   // Extraire les champs pertinents du body, y compris les nouveaux
   const { name, bio, artistImageUrl, websiteUrl, socialLinks } = req.body;
 
@@ -37,7 +36,7 @@ exports.createArtist = asyncHandler(async (req, res, next) => {
  * @route   GET /api/v1/artists
  * @access  Public or Private (Admin)
  */
-exports.getAllArtists = asyncHandler(async (req, res, next) => {
+exports.getAllArtists = asyncHandler(async (req, res) => {
   // TODO: Implémenter la pagination et le filtrage/recherche comme dans smartLinkController si nécessaire pour l'admin
   const artists = await Artist.find().sort({ name: 1 }); // Tri par nom par défaut
 

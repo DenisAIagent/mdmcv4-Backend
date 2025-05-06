@@ -39,6 +39,8 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "globals": "^16.0.0",
     "nodemon": "^3.1.10"
   },
   "description": "Backend for MDMC Music Ads"

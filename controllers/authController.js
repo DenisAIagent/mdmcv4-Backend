@@ -11,7 +11,7 @@ const crypto = require('crypto');
  * @route   POST /api/auth/register
  * @access  Public
  */
-exports.register = asyncHandler(async (req, res, next) => {
+exports.register = asyncHandler(async (req, res) => {
   const { username, email, password, role } = req.body; // Role peut être optionnel
 
   // Créer l'utilisateur (le hook pre-save dans User.js hachera le mot de passe)
@@ -95,7 +95,7 @@ exports.login = asyncHandler(async (req, res, next) => {
  * @route   GET /api/auth/logout
  * @access  Privé (nécessite 'protect')
  */
-exports.logout = asyncHandler(async (req, res, next) => {
+exports.logout = asyncHandler(async (req, res) => {
   const cookieOptions = {
     expires: new Date(Date.now() - 10 * 1000),
     httpOnly: true
@@ -264,32 +264,26 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 
 // --- Fonction Utilitaire pour envoyer Token et Cookie ---
 const sendTokenResponse = (user, statusCode, res) => {
-  // Créer le token JWT (méthode à définir dans le modèle User.js)
   const token = user.getSignedJwtToken();
-
-  // ***** AJOUT DU LOG POUR DEBUG *****
   console.log('[sendTokenResponse] Generated Token:', token);
-  // **********************************
-
-  // Options pour le cookie HttpOnly
   const cookieExpireDays = parseInt(process.env.JWT_COOKIE_EXPIRE_DAYS || '30', 10);
   const options = {
     expires: new Date(Date.now() + cookieExpireDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
+    sameSite: 'Lax', // Default, can be 'Strict' or 'None'
   };
 
   if (process.env.NODE_ENV === 'production') {
     options.secure = true;
-    // options.sameSite = 'None'; // Si nécessaire
+    options.sameSite = 'None'; // Required for cross-origin cookies with Secure=true
   }
 
-  // Envoi de la réponse : cookie + token dans le JSON
   res
     .status(statusCode)
-    .cookie('token', token, options) // Définit le cookie
+    .cookie('token', token, options)
     .json({
       success: true,
-      token // Le token est bien inclus ici
+      token
     });
 };
 

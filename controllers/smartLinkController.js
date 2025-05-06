@@ -6,13 +6,14 @@ const ErrorResponse = require('../utils/errorResponse');
 const slugify = require('slugify');
 
 exports.createSmartLink = asyncHandler(async (req, res, next) => {
-    const { artistId, trackTitle, releaseDate, coverImageUrl, description, platformLinks, trackingIds, isPublished } = req.body;
+    const { artistId, trackTitle, slug, releaseDate, coverImageUrl, description, platformLinks, trackingIds, isPublished } = req.body;
     const artist = await Artist.findById(artistId);
     if (!artist) return next(new ErrorResponse(`Artiste non trouvé avec l'ID ${artistId}`, 404));
 
     const smartLink = await SmartLink.create({
         artistId,
         trackTitle,
+        slug, // Utiliser le slug fourni ou généré par le modèle si non fourni
         releaseDate,
         coverImageUrl,
         description,
@@ -96,13 +97,13 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
         const newSlug = slugify(req.body.trackTitle, { lower: true, strict: true });
         const existingSlug = await SmartLink.findOne({
             artistId: smartLink.artistId,
-            trackSlug: newSlug,
+            slug: newSlug,
             _id: { $ne: smartLink._id }
         });
         if (existingSlug) {
             return next(new ErrorResponse(`Un autre SmartLink de cet artiste utilise déjà le slug pour le titre « ${req.body.trackTitle} ».`, 400));
         }
-        updateData.trackSlug = newSlug;
+        updateData.slug = newSlug;
     }
 
     smartLink = await SmartLink.findByIdAndUpdate(req.params.id, updateData, {
@@ -141,9 +142,9 @@ exports.getSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
 
     const smartLink = await SmartLink.findOne({
         artistId: artist._id,
-        trackSlug: req.params.trackSlug,
+        slug: req.params.trackSlug, // Ensure this matches the slug field name in the model
         isPublished: true
-    }).select('-artistId -isPublished -__v');
+    }).select("-artistId -isPublished -__v");
 
     if (!smartLink) {
         return next(new ErrorResponse(`SmartLink non trouvé ou non publié pour ${req.params.artistSlug}/${req.params.trackSlug}`, 404));

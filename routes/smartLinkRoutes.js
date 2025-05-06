@@ -13,6 +13,7 @@ const {
 
 // Assuming middleware/auth.js exists and exports protect, authorize
 const { protect, authorize } = require("../middleware/auth");
+const { logClick } = require("../middleware/logClick"); // Importer le middleware logClick
 
 const { body, param, query, validationResult } = require("express-validator");
 
@@ -164,6 +165,7 @@ router.route("/details/:artistSlug/:trackSlug")
     param("artistSlug", "Slug d'artiste invalide dans l'URL").isSlug(),
     param("trackSlug", "Slug de morceau invalide dans l'URL").isSlug(),
     handleValidationErrors,
+    logClick, // Ajouter le middleware logClick ici
     getSmartLinkBySlugs
   );
 

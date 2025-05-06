@@ -1,40 +1,40 @@
 // models/SmartLink.js
 
-const mongoose = require('mongoose');
-const slugify = require('slugify');
+const mongoose = require("mongoose");
+const slugify = require("slugify");
 
 // Sous-schéma pour les liens vers les plateformes
 const platformLinkSchema = new mongoose.Schema({
   platform: {
     type: String,
-    required: [true, 'Le nom de la plateforme est requis.'],
+    required: [true, "Le nom de la plateforme est requis."],
     trim: true
   },
   url: {
     type: String,
-    required: [true, 'L\'URL de la plateforme est requise.'],
+    required: [true, "L\'URL de la plateforme est requise."],
     trim: true
-    // match: [/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/, 'Veuillez fournir une URL valide.'] // Validation optionnelle
+    // match: [/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/, "Veuillez fournir une URL valide."] // Validation optionnelle
   }
 }, { _id: false });
 
-// Schéma principal pour le SmartLink (anciennement LandingPage pour la musique)
-const smartLinkSchema = new mongoose.Schema( // Renommé ici
+// Schéma principal pour le SmartLink
+const smartLinkSchema = new mongoose.Schema(
   {
     trackTitle: {
       type: String,
-      required: [true, 'Le titre de la musique (track title) est obligatoire.'],
+      required: [true, "Le titre de la musique (track title) est obligatoire."],
       trim: true,
-      maxlength: [150, 'Le titre ne peut pas dépasser 150 caractères.']
+      maxlength: [150, "Le titre ne peut pas dépasser 150 caractères."]
     },
-    trackSlug: {
-      type: String
-      // Généré automatiquement, unicité via index composé
+    slug: { // Anciennement trackSlug
+      type: String,
+      // Généré automatiquement, unicité via index composé avec artistId
     },
     artistId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Artist', // Référence au modèle Artist
-      required: [true, 'Une référence à l\'artiste est obligatoire.'],
+      ref: "Artist",
+      required: [true, "Une référence à l\'artiste est obligatoire."],
       index: true
     },
     releaseDate: {
@@ -42,22 +42,25 @@ const smartLinkSchema = new mongoose.Schema( // Renommé ici
     },
     coverImageUrl: {
       type: String,
-      required: [true, 'Une URL pour l\'image de couverture est obligatoire.'],
+      required: [true, "Une URL pour l\'image de couverture est obligatoire."],
       trim: true
-      // Ajouter validation URL si besoin
     },
     description: {
       type: String,
       trim: true,
-      maxlength: [500, 'La description ne peut pas dépasser 500 caractères.']
+      maxlength: [500, "La description ne peut pas dépasser 500 caractères."]
     },
-    platformLinks: [platformLinkSchema], // Tableau de liens
-    trackingIds: { // IDs de suivi spécifiques au client/lien
+    platformLinks: [platformLinkSchema],
+    trackingIds: {
       ga4Id: { type: String, trim: true },
       gtmId: { type: String, trim: true },
       metaPixelId: { type: String, trim: true },
       tiktokPixelId: { type: String, trim: true },
       googleAdsId: { type: String, trim: true }
+    },
+    clickCount: { // Nouveau champ pour le compteur de clics
+      type: Number,
+      default: 0
     },
     isPublished: {
       type: Boolean,
@@ -66,26 +69,25 @@ const smartLinkSchema = new mongoose.Schema( // Renommé ici
     }
   },
   {
-    timestamps: true // Ajoute createdAt et updatedAt
+    timestamps: true
   }
 );
 
-// Middleware pre-save pour générer le trackSlug
-smartLinkSchema.pre('save', function(next) {
-  if (this.isModified('trackTitle') || this.isNew) {
-    this.trackSlug = slugify(this.trackTitle, {
+// Middleware pre-save pour générer le slug
+smartLinkSchema.pre("save", function(next) {
+  if (this.isModified("trackTitle") || this.isNew) {
+    this.slug = slugify(this.trackTitle, {
       lower: true,
       strict: true,
-      remove: /[*+~.()'"!:@]/g
+      remove: /[*+~.()\"'!:@]/g
     });
   }
   next();
 });
 
-// Index composé pour unicité de trackSlug par artistId
-smartLinkSchema.index({ artistId: 1, trackSlug: 1 }, { unique: true });
+// Index composé pour unicité de slug par artistId
+smartLinkSchema.index({ artistId: 1, slug: 1 }, { unique: true }); // Modifié pour utiliser slug
 
-// Création et exportation du modèle sous le nom 'SmartLink'
-const SmartLink = mongoose.model('SmartLink', smartLinkSchema); // Nom changé ici
+const SmartLink = mongoose.model("SmartLink", smartLinkSchema);
 
-module.exports = SmartLink; // Export changé ici
+module.exports = SmartLink;
