@@ -195,6 +195,7 @@ exports.deleteSmartLinkById = asyncHandler(async (req, res, next) => {
     });
 });
 
+
 // --- Contrôleurs pour les Routes Publiques ---
 
 /**
@@ -270,5 +271,5 @@ exports.getSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
         success: true,
         data: responseData
     });
-});
+}); // <--- ASSUREZ-VOUS QUE CETTE ACCOLADE FERMANTE EST BIEN LÀ
 ```javascr
