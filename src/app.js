@@ -1,11 +1,8 @@
 // backend/src/app.js
 
-// Charger les variables d'environnement
 if (process.env.NODE_ENV !== 'production') {
-  // Si .env est à la racine du projet (un niveau au-dessus de src)
+  // Si .env est à la racine du projet backend (un niveau au-dessus de src)
   require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
-  // Si .env est dans le même dossier que package.json (racine du backend)
-  // require('dotenv').config(); // Cela suppose que le CWD est la racine du backend
 }
 
 const express = require('express');
@@ -13,20 +10,17 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
-const path = require('path'); // Utile pour construire des chemins
+const path = require('path'); // Inclus pour la construction de chemin pour dotenv
 
 // Importer la classe ErrorResponse et le gestionnaire d'erreurs global
-// CORRIGÉ: Chemin pour remonter du dossier 'src' vers 'utils'
-const ErrorResponse = require('../utils/errorResponse');
-// CORRIGÉ: Chemin pour remonter du dossier 'src' vers 'middleware' (si vous avez un errorHandler séparé)
-// const errorHandler = require('../middleware/errorHandler');
+const ErrorResponse = require('../utils/errorResponse'); // Chemin corrigé
+// const errorHandler = require('../middleware/errorHandler'); // Chemin corrigé (si vous avez un fichier séparé)
 
 // --- Importer vos fichiers de routes ---
-// CORRIGÉ: Chemins pour remonter du dossier 'src' vers 'routes'
-const authRoutes = require('../routes/auth.routes');
-const artistRoutes = require('../routes/artists.routes');
+const authRoutes = require('../routes/auth.routes');         // Adaptez le nom du fichier si différent
+const artistRoutes = require('../routes/artists.routes');    // Adaptez le nom du fichier si différent
 const smartlinkRoutes = require('../routes/smartLinkRoutes');
-const uploadRoutes = require('../routes/uploadRoutes');
+const uploadRoutes = require('../routes/uploadRoutes');       // Assurez-vous que ce fichier existe dans routes/
 // Ajoutez d'autres routeurs ici selon votre projet
 // const userRoutes = require('../routes/user.routes.js');
 // const wordpressRoutes = require('../routes/wordpress.routes.js');
@@ -36,18 +30,19 @@ const app = express();
 // --- Connexion à la base de données MongoDB ---
 const connectDB = async () => {
   try {
-    if (!process.env.MONGO_URI) {
-      console.error('ERREUR: La variable d\'environnement MONGO_URI n\'est pas définie.');
+    // MODIFIÉ ICI pour utiliser MONGODB_URI (avec DB)
+    if (!process.env.MONGODB_URI) {
+      console.error('ERREUR: La variable d\'environnement MONGODB_URI n\'est pas définie.');
       process.exit(1);
     }
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+    // MODIFIÉ ICI pour utiliser MONGODB_URI (avec DB)
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
     console.log(`MongoDB Connecté: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Erreur de connexion MongoDB: ${error.message}`);
     process.exit(1);
   }
 };
-
 connectDB();
 
 // --- Middlewares ---
@@ -77,7 +72,6 @@ app.get('/api', (req, res) => {
 });
 
 // --- Middleware de Gestion d'Erreurs Global ---
-// (Logique du errorHandler comme fournie précédemment, utilisant ErrorResponse)
 app.use((err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
@@ -113,6 +107,18 @@ app.use((err, req, res, next) => {
   if (err.name === 'TokenExpiredError') {
     const message = 'Votre session a expiré. Veuillez vous reconnecter.';
     error = new ErrorResponse(message, 401);
+  }
+  // Gérer les erreurs de Multer (si vous l'utilisez pour l'upload)
+  // Assurez-vous d'importer multer si vous le référencez directement ici (MulterError)
+  // const multer = require('multer'); // Si besoin d'importer pour instanceof MulterError
+  if (err.name === 'MulterError') { // Vérifier si l'erreur est une instance de MulterError
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        error = new ErrorResponse('Le fichier est trop volumineux. La taille maximale est de 5MB.', 400);
+    } else {
+        error = new ErrorResponse(`Erreur d'upload de fichier: ${err.message}`, 400);
+    }
+  } else if (err.message === 'Seules les images sont autorisées!') {
+    error = new ErrorResponse(err.message, 400);
   }
 
   res.status(error.statusCode || 500).json({
