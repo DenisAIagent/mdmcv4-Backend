@@ -1,27 +1,18 @@
 // backend/controllers/smartLinkController.js
-const SmartLink = require('../models/SmartLink'); // Adaptez le chemin vers votre modèle SmartLink.js
-const Artist = require('../models/Artist');     // Adaptez le chemin vers votre modèle Artist.js
-const asyncHandler = require('../middleware/asyncHandler'); // Votre wrapper pour les erreurs asynchrones
-const ErrorResponse = require('../utils/errorResponse');  // Votre classe utilitaire pour les erreurs HTTP
-const slugify = require('slugify'); // Assurez-vous qu'il est installé et requis
+const SmartLink = require('../models/SmartLink');
+const Artist = require('../models/Artist');
+const asyncHandler = require('../middleware/asyncHandler');
+const ErrorResponse = require('../utils/errorResponse'); // Assurez-vous que ce fichier existe ou adaptez
+const slugify = require('slugify');
 
 // --- Fonction utilitaire interne pour générer un slug unique ---
-/**
- * Génère un slug unique pour un SmartLink pour un artiste donné.
- * Si le slug initial existe déjà pour cet artiste, ajoute un suffixe numérique.
- * @param {string} baseTitle - Le titre du morceau pour générer le slug.
- * @param {mongoose.Types.ObjectId} artistId - L'ID de l'artiste.
- * @param {string} [proposedSlug] - Un slug proposé (optionnel, peut venir du formulaire).
- * @param {mongoose.Types.ObjectId} [excludeId] - ID d'un SmartLink à exclure de la vérification (utile en cas de mise à jour).
- * @returns {Promise<string>} Le slug unique généré.
- */
 const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null, excludeId = null) => {
   let baseSlugAttempt = proposedSlug
     ? slugify(proposedSlug, { lower: true, strict: true, remove: /[*+~.()'"!:@#%$^&={}|[\]\\;\/?]/g })
     : slugify(baseTitle, { lower: true, strict: true, remove: /[*+~.()'"!:@#%$^&={}|[\]\\;\/?]/g });
 
   if (!baseSlugAttempt) {
-    baseSlugAttempt = 'smartlink'; // Fallback si le titre ne donne rien après slugify
+    baseSlugAttempt = 'smartlink';
   }
 
   let slug = baseSlugAttempt;
@@ -42,9 +33,6 @@ const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null,
   return slug;
 };
 
-
-// --- Fonctions du Contrôleur ---
-
 // @desc    Créer un nouveau SmartLink
 // @route   POST /api/smartlinks
 // @access  Private (Admin)
@@ -63,13 +51,12 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
     artistId,
     trackTitle,
     slug: finalSlug,
-    // userId: req.user.id, // Si gestion des utilisateurs activée
+    // userId: req.user?.id, // Si gestion des utilisateurs activée et protect middleware utilisé
   };
 
   const smartLink = await SmartLink.create(smartLinkData);
   res.status(201).json({ success: true, data: smartLink });
 });
-
 
 // @desc    Récupérer tous les SmartLinks (pour l'admin)
 // @route   GET /api/smartlinks
@@ -107,7 +94,6 @@ exports.getAllSmartLinks = asyncHandler(async (req, res, next) => {
   const limit = parseInt(req.query.limit, 10) || 25;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
-  // Utiliser JSON.parse(queryStr) pour countDocuments pour refléter les filtres appliqués
   const total = await SmartLink.countDocuments(JSON.parse(queryStr));
 
   query = query.skip(startIndex).limit(limit);
@@ -126,14 +112,13 @@ exports.getAllSmartLinks = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 // @desc    Récupérer un SmartLink par son ID (pour l'édition admin)
 // @route   GET /api/smartlinks/:id
 // @access  Private (Admin)
 exports.getSmartLinkById = asyncHandler(async (req, res, next) => {
   const smartLink = await SmartLink.findById(req.params.id).populate({
     path: 'artistId',
-    select: 'name slug _id' // _id de l'artiste est important pour le select du formulaire
+    select: 'name slug _id'
   });
 
   if (!smartLink) {
@@ -141,7 +126,6 @@ exports.getSmartLinkById = asyncHandler(async (req, res, next) => {
   }
   res.status(200).json({ success: true, data: smartLink });
 });
-
 
 // @desc    Mettre à jour un SmartLink par son ID
 // @route   PUT /api/smartlinks/:id
@@ -151,15 +135,11 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
   if (!smartLink) {
     return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${req.params.id}`, 404));
   }
+  // TODO: Ajouter vérification des droits (req.user.id vs smartLink.userId)
 
-  // TODO: Ajouter vérification des droits si nécessaire (req.user.id vs smartLink.userId)
-
-  const updateData = { ...req.body }; // Copie des données du corps de la requête
-
+  const updateData = { ...req.body };
   const newTrackTitle = req.body.trackTitle;
   const proposedSlugByUser = req.body.slug;
-  // L'artistId n'est généralement pas modifié lors d'une mise à jour de SmartLink.
-  // Si c'était le cas, la logique de slug deviendrait plus complexe.
   const currentArtistId = smartLink.artistId;
 
   if (
@@ -170,16 +150,11 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
     const slugToGenerateFrom = (proposedSlugByUser && proposedSlugByUser !== smartLink.slug)
                                ? proposedSlugByUser
                                : titleForSlug;
-    // Générer le nouveau slug en excluant l'ID du document actuel pour la vérification d'unicité
     updateData.slug = await generateUniqueTrackSlug(titleForSlug, currentArtistId, slugToGenerateFrom, smartLink._id);
   } else if (req.body.hasOwnProperty('slug') && req.body.slug === smartLink.slug) {
-    // Si le slug est fourni mais identique, pas besoin de le recalculer, on garde l'existant.
     updateData.slug = smartLink.slug;
   }
-  // Si ni trackTitle ni slug ne sont dans req.body, ou s'ils sont identiques aux valeurs existantes,
-  // et qu'aucun slug n'est proposé, le slug existant ne sera pas modifié par cette logique.
 
-  // Nettoyer les platformLinks vides avant de sauvegarder
   if (updateData.platformLinks && Array.isArray(updateData.platformLinks)) {
     updateData.platformLinks = updateData.platformLinks.filter(link => link.platform && link.url);
   }
@@ -188,10 +163,8 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
     new: true,
     runValidators: true
   });
-
   res.status(200).json({ success: true, data: updatedSmartLink });
 });
-
 
 // @desc    Supprimer un SmartLink par son ID
 // @route   DELETE /api/smartlinks/:id
@@ -201,14 +174,10 @@ exports.deleteSmartLinkById = asyncHandler(async (req, res, next) => {
   if (!smartLink) {
     return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${req.params.id}`, 404));
   }
-
-  // TODO: Vérification des droits
-  // TODO: Supprimer l'image associée sur Cloudinary (nécessite de stocker l'ID public de l'image ou d'avoir une logique pour le faire)
-
+  // TODO: Vérification des droits + Supprimer image Cloudinary
   await smartLink.deleteOne();
   res.status(200).json({ success: true, message: "SmartLink supprimé avec succès." });
 });
-
 
 // @desc    Récupérer les SmartLinks publiés d'un artiste par son slug
 // @route   GET /api/smartlinks/artist/:artistSlug
@@ -218,14 +187,12 @@ exports.getSmartLinksByArtistSlug = asyncHandler(async (req, res, next) => {
   if (!artist) {
     return next(new ErrorResponse(`Artiste non trouvé avec le slug ${req.params.artistSlug}`, 404));
   }
-
   const smartLinks = await SmartLink.find({
     artistId: artist._id,
     isPublished: true
   })
   .sort({ releaseDate: -1, createdAt: -1 })
   .select('trackTitle slug coverImageUrl releaseDate artistId'); // 'slug' est le trackSlug
-
   res.status(200).json({
     success: true,
     count: smartLinks.length,
@@ -234,71 +201,59 @@ exports.getSmartLinksByArtistSlug = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 // @desc    Récupérer un SmartLink public par ses slugs (artistSlug et trackSlug/slug du SmartLink)
 // @route   GET /api/smartlinks/public/:artistSlug/:trackSlug
 // @access  Public
 exports.getPublicSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
   const { artistSlug, trackSlug } = req.params;
-
   const artist = await Artist.findOne({ slug: artistSlug })
-                             .select('name slug artistImageUrl websiteUrl socialLinks _id'); // Inclure _id
+                             .select('name slug artistImageUrl websiteUrl socialLinks _id');
   if (!artist) {
     return next(new ErrorResponse(`Artiste non trouvé avec le slug ${artistSlug}`, 404));
   }
-
   const smartLink = await SmartLink.findOne({
-    artistId: artist._id, // Utiliser l'_id de l'artiste trouvé
-    slug: trackSlug,     // 'slug' est le trackSlug dans le modèle SmartLink
+    artistId: artist._id,
+    slug: trackSlug,
     isPublished: true
   });
-
   if (!smartLink) {
     return next(new ErrorResponse(`SmartLink non trouvé ou non publié pour ${artistSlug}/${trackSlug}`, 404));
   }
-
-  // Incrémenter viewCount (pour le "PageView" initial)
-  smartLink.viewCount = (smartLink.viewCount || 0) + 1;
-  await smartLink.save({ validateBeforeSave: false }); // Sauvegarder sans re-valider tout le document
+  // L'incrémentation de viewCount est maintenant gérée par le middleware logClick sur la route.
+  // On ne la fait plus ici pour éviter de compter double.
+  // smartLink.viewCount = (smartLink.viewCount || 0) + 1;
+  // await smartLink.save({ validateBeforeSave: false });
 
   const responseData = {
     smartLink: smartLink.toObject(),
     artist: {
-      _id: artist._id.toString(), // Convertir ObjectId en string
+      _id: artist._id.toString(),
       name: artist.name,
       slug: artist.slug,
       artistImageUrl: artist.artistImageUrl,
       websiteUrl: artist.websiteUrl,
       socialLinks: artist.socialLinks
-      // Ajoutez d'autres champs de l'artiste que le frontend public pourrait nécessiter
     }
   };
-  delete responseData.smartLink.artistId; // Enlever la référence ObjectId brute, car l'objet artiste est fourni
-
+  delete responseData.smartLink.artistId;
   res.status(200).json({ success: true, data: responseData });
 });
-
 
 // @desc    Logguer un clic sur un lien de plateforme d'un SmartLink (pour le compteur platformClickCount)
 // @route   POST /api/smartlinks/:id/log-platform-click
 // @access  Public
 exports.logPlatformClick = asyncHandler(async (req, res, next) => {
     const smartLink = await SmartLink.findById(req.params.id);
-
     if (!smartLink) {
         return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${req.params.id}`, 404));
     }
-
     smartLink.platformClickCount = (smartLink.platformClickCount || 0) + 1;
-
-    // Optionnel: log détaillé par plateforme si le frontend envoie 'platformName' dans req.body
+    // Optionnel: log détaillé par plateforme
     // const { platformName } = req.body;
-    // if (platformName && smartLink.platformClicksDetailed) { // Assurez-vous que platformClicksDetailed est initialisé dans le modèle
+    // if (platformName && smartLink.platformClicksDetailed) {
     //   const currentPlatformClicks = smartLink.platformClicksDetailed.get(platformName) || 0;
     //   smartLink.platformClicksDetailed.set(platformName, currentPlatformClicks + 1);
     // }
-
     await smartLink.save({ validateBeforeSave: false });
-
     res.status(200).json({ success: true, message: "Clic sur plateforme enregistré." });
 });
