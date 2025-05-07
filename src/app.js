@@ -1,61 +1,67 @@
-// backend/app.js (ou server.js)
+// backend/app.js
 
-// Charger les variables d'environnement depuis le fichier .env (si vous en utilisez un)
-// require('dotenv').config(); // Si vous utilisez dotenv, sinon assurez-vous que vos variables d'env sont chargées
-// Pour un projet avec import/export ES6 (si package.json a "type": "module"):
-// import dotenv from 'dotenv';
-// dotenv.config();
+// Charger les variables d'environnement (si vous utilisez un fichier .env)
+// Assurez-vous que dotenv est installé (npm install dotenv) et configuré.
+// Si votre fichier .env n'est pas à la racine du projet backend mais un niveau au-dessus,
+// vous pourriez avoir besoin de spécifier le chemin : require('dotenv').config({ path: '../.env' });
+// Pour cet exemple, je suppose qu'il est à la racine du backend ou que les variables sont déjà chargées.
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config(); // Charger .env seulement en développement/test
+}
 
 const express = require('express');
-const mongoose = require('mongoose'); // Si vous utilisez Mongoose pour MongoDB
-const cors = require('cors'); // Pour gérer les requêtes Cross-Origin
-const cookieParser = require('cookie-parser'); // Pour parser les cookies (utile si JWT est dans les cookies)
-const morgan = require('morgan'); // Pour le logging HTTP (optionnel, utile en développement)
+const mongoose = require('mongoose');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const morgan = require('morgan'); // Optionnel, pour le logging HTTP
 
-// Importer la classe ErrorResponse (si vous l'utilisez)
-const ErrorResponse = require('./utils/errorResponse'); // Adaptez le chemin
-// Importer le middleware de gestion d'erreurs global
-const errorHandler = require('./middleware/errorHandler'); // Adaptez le chemin (nous allons le définir ci-dessous aussi)
+// Importer la classe ErrorResponse et le gestionnaire d'erreurs global
+const ErrorResponse = require('./utils/errorResponse'); // Chemin basé sur votre structure
+const errorHandler = require('./middleware/errorHandler'); // Chemin basé sur votre structure (à créer si inexistant)
 
 // --- Importer vos fichiers de routes ---
-const authRoutes = require('./routes/authRoutes');             // Exemple, adaptez le chemin
-const artistRoutes = require('./routes/artistRoutes');         // Exemple, adaptez le chemin
-const smartlinkRoutes = require('./routes/smartlinkRoutes');   // NOUVEAU, adaptez le chemin
-const uploadRoutes = require('./routes/uploadRoutes');         // Exemple, adaptez le chemin
-// Ajoutez d'autres routeurs ici si nécessaire
+// Vérifiez les noms exacts de vos fichiers dans le dossier 'routes'
+const authRoutes = require('./routes/auth.routes');         // Adaptez le nom du fichier si différent
+const artistRoutes = require('./routes/artists.routes');    // Adaptez le nom du fichier si différent
+const smartlinkRoutes = require('./routes/smartLinkRoutes'); // Celui que nous avons défini
+const uploadRoutes = require('./routes/uploadRoutes');       // Adaptez le nom du fichier si différent (ex: upload.routes.js)
+// Ajoutez d'autres routeurs ici selon votre projet (ex: chatbot, landingPage, marketing, reviews, user, wordpress)
+// Exemple:
+// const userRoutes = require('./routes/user.routes.js');
+// const wordpressRoutes = require('./routes/wordpress.routes.js');
+
 
 // Initialiser l'application Express
 const app = express();
 
-// --- Connexion à la base de données MongoDB (Exemple avec Mongoose) ---
+// --- Connexion à la base de données MongoDB ---
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      // Options pour éviter les avertissements de dépréciation Mongoose
-      // useNewUrlParser: true, // Plus nécessaire dans Mongoose 6+
-      // useUnifiedTopology: true, // Plus nécessaire dans Mongoose 6+
-      // useCreateIndex: true, // Plus nécessaire, les index sont créés via schema.index()
-      // useFindAndModify: false, // Plus nécessaire
-    });
+    if (!process.env.MONGO_URI) {
+      console.error('ERREUR: La variable d\'environnement MONGO_URI n\'est pas définie.');
+      process.exit(1);
+    }
+    const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB Connecté: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Erreur de connexion MongoDB: ${error.message}`);
-    process.exit(1); // Quitter le processus avec échec
+    process.exit(1);
   }
 };
 
-connectDB(); // Appeler la fonction de connexion
+connectDB();
 
 // --- Middlewares ---
 
-// Activer CORS pour toutes les routes (ou configurez des options spécifiques)
-// Exemple de configuration CORS plus permissive pour le développement :
+// Activer CORS
+// Configurez l'origine pour correspondre à votre frontend en production.
+// Pour le développement, '*' ou l'URL de votre dev frontend est souvent utilisé.
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // URL de votre frontend
-  credentials: true // Important si vous utilisez des cookies ou des sessions
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // URL de votre frontend React
+  credentials: true
 }));
 
-// Morgan pour le logging HTTP en mode développement (optionnel)
+// Morgan pour le logging HTTP en mode développement
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -64,101 +70,111 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 // Parser le corps des requêtes URL-encoded
 app.use(express.urlencoded({ extended: true }));
-// Parser les cookies
+// Parser les cookies (nécessaire si votre middleware 'protect' lit les tokens des cookies)
 app.use(cookieParser());
 
-// --- Monter les Routeurs ---
-// Les routes seront préfixées par /api
-app.use('/api/auth', authRoutes);             // Ex: /api/auth/login, /api/auth/register
-app.use('/api/artists', artistRoutes);         // Ex: /api/artists, /api/artists/:slugOrId
-app.use('/api/smartlinks', smartlinkRoutes);   // Ex: /api/smartlinks, /api/smartlinks/:id
-app.use('/api/upload', uploadRoutes);         // Ex: /api/upload/image
+// Servir les fichiers statiques (si vous avez un dossier public pour des images par exemple)
+// const path = require('path');
+// app.use(express.static(path.join(__dirname, 'public')));
 
-// Route de test simple pour vérifier que le serveur fonctionne
+
+// --- Monter les Routeurs ---
+// Toutes les routes seront préfixées par /api
+app.use('/api/auth', authRoutes);
+app.use('/api/artists', artistRoutes);
+app.use('/api/smartlinks', smartlinkRoutes); // Nouveau routeur pour les SmartLinks
+app.use('/api/upload', uploadRoutes);         // Si vous avez un routeur pour l'upload
+// Montez vos autres routeurs ici :
+// app.use('/api/users', userRoutes);
+// app.use('/api/wordpress', wordpressRoutes);
+// ... etc.
+
+// Route de test simple pour l'API
 app.get('/api', (req, res) => {
-  res.json({ message: 'API MDMC Music Ads SmartLink Builder fonctionne !' });
+  res.status(200).json({ success: true, message: 'API MDMC Music Ads SmartLink Builder est opérationnelle !' });
 });
 
 // --- Middleware de Gestion d'Erreurs Global ---
-// Doit être défini APRÈS toutes les autres routes et middlewares.
-// Si vous avez créé un fichier séparé (ex: middleware/errorHandler.js), importez-le.
-// Sinon, vous pouvez définir la logique ici :
+// Ce middleware doit être défini APRÈS toutes les autres routes et middlewares.
+// Si vous n'avez pas de fichier middleware/errorHandler.js, créez-le ou mettez la logique ici.
+// Je vais inclure une version ici pour que ce fichier soit complet.
+// Si vous avez déjà errorHandler.js, assurez-vous qu'il est similaire.
 app.use((err, req, res, next) => {
-  let error = { ...err }; // Crée une copie de l'objet erreur
-  error.message = err.message; // S'assurer que le message est copié
+  let error = { ...err };
+  error.message = err.message;
 
-  // Log de l'erreur pour le développeur (console ou un système de logging)
-  console.error('-------------------- ERROR LOG --------------------');
-  console.error('Message:', error.message);
-  if (process.env.NODE_ENV === 'development') { // Afficher la stack trace seulement en dev
-    console.error('Stack Trace:', err.stack);
+  // Log pour le développeur
+  console.error('--- GESTIONNAIRE D\'ERREURS GLOBAL ---');
+  console.error('Message:', err.message);
+  if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) { // Plus de détails en dev
+      console.error('Erreur Complète:', err);
+      console.error('Stack:', err.stack);
   }
-  console.error('-------------------------------------------------');
+  console.error('------------------------------------');
 
 
   // Erreur Mongoose: ObjectId invalide (CastError)
   if (err.name === 'CastError' && err.kind === 'ObjectId') {
-    const message = `Ressource non trouvée. ID invalide: ${err.value}`;
-    error = new ErrorResponse(message, 404); // Utilise votre classe ErrorResponse
+    const message = `Ressource non trouvée. L'identifiant fourni est invalide: ${err.value}`;
+    error = new ErrorResponse(message, 404);
   }
 
   // Erreur Mongoose: Duplication de champ unique (code 11000)
   if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
-    const value = err.keyValue[field];
-    const message = `La valeur '${value}' pour le champ '${field}' existe déjà. Veuillez en choisir une autre.`;
-    error = new ErrorResponse(message, 400); // 400 Bad Request
+    let field = Object.keys(err.keyValue)[0];
+    let value = err.keyValue[field];
+    // Rendre le message plus lisible
+    field = field.charAt(0).toUpperCase() + field.slice(1); // Mettre la première lettre en majuscule
+    const message = `Le champ '${field}' avec la valeur '${value}' existe déjà. Cette valeur doit être unique.`;
+    error = new ErrorResponse(message, 400);
   }
 
   // Erreur Mongoose: Échec de validation (ValidationError)
   if (err.name === 'ValidationError') {
-    // Concatène tous les messages d'erreur de validation
-    // Ou retourne seulement le premier pour la simplicité : Object.values(err.errors).map(val => val.message)[0]
-    const messages = Object.values(err.errors).map(val => val.message).join('. ');
-    const message = `Erreur de validation des données: ${messages}`;
-    error = new ErrorResponse(message, 400); // 400 Bad Request
+    const messages = Object.values(err.errors).map(val => val.message);
+    const message = `Données invalides: ${messages.join('. ')}`;
+    error = new ErrorResponse(message, 400);
   }
 
-  // Erreur JWT: Token invalide ou expiré (géré dans le middleware 'protect')
-  // Si ErrorResponse est déjà utilisé dans 'protect', cette section peut ne pas être nécessaire ici
-  // si 'protect' appelle déjà next() avec une instance d'ErrorResponse.
+  // Erreurs JWT (gérées dans le middleware 'protect', mais en fallback ici)
   if (err.name === 'JsonWebTokenError') {
-    const message = 'Token invalide. Veuillez vous reconnecter.';
-    error = new ErrorResponse(message, 401); // 401 Unauthorized
+    const message = 'Authentification échouée (token invalide). Veuillez vous reconnecter.';
+    error = new ErrorResponse(message, 401);
   }
   if (err.name === 'TokenExpiredError') {
     const message = 'Votre session a expiré. Veuillez vous reconnecter.';
-    error = new ErrorResponse(message, 401); // 401 Unauthorized
+    error = new ErrorResponse(message, 401);
   }
 
   // Réponse finale d'erreur au client
   res.status(error.statusCode || 500).json({
     success: false,
-    error: error.message || 'Erreur Interne du Serveur',
-    // data: null // Optionnel
+    error: error.message || 'Erreur Interne du Serveur'
   });
 });
 
 
 // --- Démarrage du Serveur ---
-const PORT = process.env.PORT || 5000; // Utiliser le port défini dans .env ou 5000 par défaut
+const PORT = process.env.PORT || 5001; // J'ai changé le port par défaut au cas où le frontend utilise 5000
 
 const server = app.listen(
   PORT,
   console.log(
-    `Serveur démarré en mode ${process.env.NODE_ENV || 'development'} sur le port ${PORT}`
+    `Serveur démarré en mode ${process.env.NODE_ENV || 'inconnu (probablement development)'} sur le port ${PORT}`
   )
 );
 
-// Gérer les rejets de promesses non interceptés (erreurs globales)
+// Gérer les rejets de promesses non interceptés (erreurs asynchrones non gérées)
 process.on('unhandledRejection', (err, promise) => {
-  console.error(`Erreur non gérée (Unhandled Rejection): ${err.message}`);
+  console.error(`ERREUR (Unhandled Rejection): ${err.message || err}`);
   // Fermer le serveur et quitter le processus proprement
   server.close(() => process.exit(1));
 });
 
-// Gérer les exceptions non interceptées
+// Gérer les exceptions non interceptées (erreurs synchrones non gérées)
 process.on('uncaughtException', (err) => {
-    console.error(`Exception non gérée (Uncaught Exception): ${err.message}`);
+    console.error(`ERREUR (Uncaught Exception): ${err.message || err}`);
     server.close(() => process.exit(1));
 });
+
+module.exports = app; // Utile pour les tests ou si vous séparez le démarrage du serveur
