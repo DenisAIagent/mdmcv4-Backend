@@ -1,289 +1,45 @@
-// backend/controllers/authController.js
-
-const User = require('../models/User'); // Adaptez le chemin si nécessaire
-const ErrorResponse = require('../utils/errorResponse'); // Adaptez le chemin si nécessaire
-const asyncHandler = require("../middleware/asyncHandler"); // Adaptez le chemin si nécessaire
-const sendEmail = require('../utils/sendEmail'); // Adaptez le chemin si nécessaire
-const crypto = require('crypto');
-
-/**
- * @desc    S'inscrire en tant qu'utilisateur
- * @route   POST /api/auth/register
- * @access  Public
- */
-exports.register = asyncHandler(async (req, res) => {
-  const { username, email, password, role } = req.body; // Role peut être optionnel
-
-  // Créer l'utilisateur (le hook pre-save dans User.js hachera le mot de passe)
-  const user = await User.create({
-    username,
-    email,
-    password,
-    role // Assurez-vous que votre modèle User gère le rôle
-  });
-
-  // Envoyer le token et la réponse
-  sendTokenResponse(user, 201, res); // 201 Created
-});
-
-/**
- * @desc    Connexion utilisateur
- * @route   POST /api/auth/login
- * @access  Public
- */
-exports.login = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
-  console.log(`[LOGIN ATTEMPT] Received login attempt for email: "${email}"`);
-
-  // Valider email et mot de passe
-  if (!email || !password) {
-    console.log('[LOGIN FAILED] Missing email or password');
-    return next(new ErrorResponse('Veuillez fournir un email et un mot de passe', 400));
-  }
-
-  // Vérifier l'utilisateur et récupérer le mot de passe haché
-  console.log(`[LOGIN ATTEMPT] Finding user with email: "${email}"`);
-  const user = await User.findOne({ email }).select('+password');
-
-  if (!user) {
-    console.log(`[LOGIN FAILED] User not found for email: "${email}"`);
-    return next(new ErrorResponse('Identifiants invalides', 401));
-  }
-  console.log(`[LOGIN ATTEMPT] User found: ID=${user._id}. Comparing password...`);
-
-  // Vérifier si le mot de passe correspond
-  let isMatch = false;
-  try {
-      isMatch = await user.matchPassword(password); // Méthode du modèle User
-      console.log(`[LOGIN ATTEMPT] Password match result for ${user.email}: ${isMatch}`);
-  } catch (compareError) {
-      console.error(`[LOGIN ERROR] Error during password comparison for ${user.email}:`, compareError);
-      return next(new ErrorResponse('Erreur lors de la vérification des identifiants', 500));
-  }
-
-  if (!isMatch) {
-    console.log(`[LOGIN FAILED] Password mismatch for user: ${user.email}`);
-    return next(new ErrorResponse('Identifiants invalides', 401));
-  }
-
-  // --- Mot de passe correct ---
-  console.log(`[LOGIN SUCCESS] Password matched for user: ${user.email}. Proceeding...`);
-
-  // Mettre à jour la date de dernière connexion (optionnel)
-  try {
-    user.lastLogin = Date.now();
-    await user.save({ validateBeforeSave: false });
-    console.log(`[LOGIN SUCCESS] Updated lastLogin for user: ${user.email}`);
-  } catch(saveError) {
-    console.error(`[LOGIN ERROR] Failed to update lastLogin for user: ${user.email}`, saveError);
-  }
-
-  // Envoyer le token JWT et le cookie
-  console.log(`[LOGIN SUCCESS] Calling sendTokenResponse for user: ${user.email}`);
-  try {
-      sendTokenResponse(user, 200, res); // 200 OK
-      console.log(`[LOGIN SUCCESS] Token response sent for user: ${user.email}`);
-  } catch (tokenError) {
-      console.error(`[LOGIN ERROR] Error during sendTokenResponse for user: ${user.email}`, tokenError);
-      return next(new ErrorResponse('Erreur serveur lors de la finalisation de la connexion.', 500));
-  }
-});
-
-
-/**
- * @desc    Déconnexion utilisateur / effacer le cookie
- * @route   GET /api/auth/logout
- * @access  Privé (nécessite 'protect')
- */
-exports.logout = asyncHandler(async (req, res) => {
-  const cookieOptions = {
-    expires: new Date(Date.now() - 10 * 1000),
-    httpOnly: true
-  };
-  if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true;
-    // cookieOptions.sameSite = 'None'; // Si nécessaire
-  }
-
-  res.status(200)
-     .cookie('token', 'none', cookieOptions)
-     .json({
-        success: true,
-        data: {}
-     });
-});
-
-/**
- * @desc    Obtenir l'utilisateur actuel (basé sur le token)
- * @route   GET /api/auth/me
- * @access  Privé (nécessite 'protect')
- */
-exports.getMe = asyncHandler(async (req, res, next) => {
-  if (!req.user || !req.user.id) {
-       return next(new ErrorResponse('Utilisateur non authentifié ou non trouvé dans la requête', 401));
-   }
-  res.status(200).json({
-    success: true,
-    data: req.user
-  });
-});
-
-/**
- * @desc    Mettre à jour le mot de passe (utilisateur connecté)
- * @route   PUT /api/auth/updatepassword
- * @access  Privé (nécessite 'protect')
- */
-exports.updatePassword = asyncHandler(async (req, res, next) => {
-    if (!req.user || !req.user.id) {
-        return next(new ErrorResponse('Utilisateur non authentifié', 401));
-    }
-
-    const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-        return next(new ErrorResponse('Veuillez fournir le mot de passe actuel et le nouveau mot de passe', 400));
-    }
-
-    const user = await User.findById(req.user.id).select('+password');
-
-    if (!user) {
-        return next(new ErrorResponse('Utilisateur non trouvé', 404));
-    }
-
-    const isMatch = await user.matchPassword(currentPassword);
-    if (!isMatch) {
-        return next(new ErrorResponse('Mot de passe actuel incorrect', 401));
-    }
-
-    user.password = newPassword;
-    await user.save();
-
-    // Optionnel: Envoyer une notification par email
-    // ...
-
-    sendTokenResponse(user, 200, res);
-});
-
-/**
- * @desc    Mot de passe oublié (demande de réinitialisation)
- * @route   POST /api/auth/forgotpassword
- * @access  Public
- */
-exports.forgotPassword = asyncHandler(async (req, res, next) => {
-  const { email } = req.body;
-  if (!email) {
-     return next(new ErrorResponse('Veuillez fournir un email', 400));
-  }
-
-  const user = await User.findOne({ email });
-
-  if (!user) {
-    console.log(`[FORGOT PASSWORD] Tentative pour email inexistant: ${email}`);
-    return res.status(200).json({ success: true, data: 'Si un compte existe pour cet email, un lien de réinitialisation a été envoyé.' });
-  }
-
-  let resetToken;
-  try {
-    resetToken = user.getResetPasswordToken(); // Méthode à définir dans User.js
-    await user.save({ validateBeforeSave: false });
-  } catch(tokenError){
-      console.error("Erreur génération/sauvegarde reset token:", tokenError);
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-      return next(new ErrorResponse('Erreur lors de la génération du token de réinitialisation', 500));
-  }
-
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/resetpassword/${resetToken}`;
-  const message = `Vous recevez cet email car une réinitialisation de mot de passe a été demandée pour votre compte MDMC Music Ads.\n\nCliquez sur le lien suivant ou copiez-le dans votre navigateur pour définir un nouveau mot de passe. Ce lien expirera dans ${process.env.RESET_PASSWORD_EXPIRE_MINUTES || 10} minutes:\n\n${resetUrl}\n\nSi vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.`;
-
-  try {
-    if (!sendEmail) throw new Error("Service d'envoi d'email non configuré.");
-    await sendEmail({
-      email: user.email,
-      subject: 'Réinitialisation de votre mot de passe MDMC Music Ads',
-      message
-    });
-
-    console.log(`[FORGOT PASSWORD] Email envoyé à ${user.email}`);
-    res.status(200).json({ success: true, data: 'Email de réinitialisation envoyé avec succès.' });
-
-  } catch (err) {
-    console.error("[FORGOT PASSWORD] Erreur lors de l'envoi de l'email:", err);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    try {
-        await user.save({ validateBeforeSave: false });
-    } catch (saveErr) {
-        console.error("Erreur lors de l'annulation du token après échec d'envoi email:", saveErr);
-    }
-    return next(new ErrorResponse("L'email de réinitialisation n'a pas pu être envoyé", 500));
-  }
-});
-
-/**
- * @desc    Réinitialiser le mot de passe (via le lien reçu par email)
- * @route   PUT /api/auth/resetpassword/:resettoken
- * @access  Public
- */
-exports.resetPassword = asyncHandler(async (req, res, next) => {
-  const { password } = req.body;
-  const { resettoken } = req.params;
-
-  if (!password) {
-      return next(new ErrorResponse('Veuillez fournir un nouveau mot de passe', 400));
-  }
-  if (!resettoken) {
-      return next(new ErrorResponse('Token de réinitialisation manquant', 400));
-  }
-
-  const resetPasswordToken = crypto
-    .createHash('sha256')
-    .update(resettoken)
-    .digest('hex');
-
-  const user = await User.findOne({
-    resetPasswordToken,
-    resetPasswordExpire: { $gt: Date.now() }
-  });
-
-  if (!user) {
-    return next(new ErrorResponse('Le lien de réinitialisation est invalide ou a expiré', 400));
-  }
-
-  user.password = password;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpire = undefined;
-  await user.save();
-
-  // Optionnel: Envoyer une notification email de confirmation
-  // ...
-
-  sendTokenResponse(user, 200, res);
-});
-
-
-// --- Fonction Utilitaire pour envoyer Token et Cookie ---
+// Dans sendTokenResponse (fonction qui crée le cookie au login)
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
-  console.log('[sendTokenResponse] Generated Token:', token);
   const cookieExpireDays = parseInt(process.env.JWT_COOKIE_EXPIRE_DAYS || '30', 10);
   const options = {
     expires: new Date(Date.now() + cookieExpireDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    sameSite: 'Lax', // Default, can be 'Strict' or 'None'
+    path: '/', // Assure que le cookie est accessible depuis tous les chemins
   };
 
   if (process.env.NODE_ENV === 'production') {
     options.secure = true;
-    options.sameSite = 'None'; // Required for cross-origin cookies with Secure=true
+    options.sameSite = 'None'; // Nécessaire pour cross-site avec Secure=true
+  } else {
+    options.sameSite = 'Lax'; // 'Lax' est un bon défaut pour le dev
   }
 
   res
     .status(statusCode)
     .cookie('token', token, options)
-    .json({
-      success: true,
-      token
-    });
+    .json({ success: true, token }); // Token dans JSON est optionnel si on se base sur cookie
 };
 
+// Dans exports.logout (fonction qui supprime le cookie)
+exports.logout = asyncHandler(async (req, res, next) => {
+  const cookieOptions = {
+    expires: new Date(Date.now() - 10 * 1000), // Date d'expiration dans le passé
+    httpOnly: true,
+    path: '/', // DOIT CORRESPONDRE à celui du login
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+    cookieOptions.sameSite = 'None'; // DOIT CORRESPONDRE
+  } else {
+    cookieOptions.sameSite = 'Lax'; // DOIT CORRESPONDRE
+  }
+
+  res.status(200)
+     .cookie('token', 'none', cookieOptions) // Envoie un cookie expiré avec le même nom et options
+     .json({
+       success: true,
+       data: {}
+     });
+});
