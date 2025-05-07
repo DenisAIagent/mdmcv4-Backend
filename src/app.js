@@ -1,41 +1,33 @@
 // backend/src/app.js
 
 if (process.env.NODE_ENV !== 'production') {
-  // Si .env est à la racine du projet backend (un niveau au-dessus de src)
   require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 }
 
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
+const cors = require('cors'); // Assurez-vous que cors est importé
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
-const path = require('path'); // Inclus pour la construction de chemin pour dotenv
+const path = require('path');
 
-// Importer la classe ErrorResponse et le gestionnaire d'erreurs global
-const ErrorResponse = require('../utils/errorResponse'); // Chemin corrigé
-// const errorHandler = require('../middleware/errorHandler'); // Chemin corrigé (si vous avez un fichier séparé)
+const ErrorResponse = require('../utils/errorResponse');
 
 // --- Importer vos fichiers de routes ---
-const authRoutes = require('../routes/auth.routes');         // Adaptez le nom du fichier si différent
-const artistRoutes = require('../routes/artists.routes');    // Adaptez le nom du fichier si différent
+const authRoutes = require('../routes/auth.routes');
+const artistRoutes = require('../routes/artists.routes');
 const smartlinkRoutes = require('../routes/smartLinkRoutes');
-const uploadRoutes = require('../routes/uploadRoutes');       // Assurez-vous que ce fichier existe dans routes/
-// Ajoutez d'autres routeurs ici selon votre projet
-// const userRoutes = require('../routes/user.routes.js');
-// const wordpressRoutes = require('../routes/wordpress.routes.js');
+const uploadRoutes = require('../routes/uploadRoutes');
 
 const app = express();
 
 // --- Connexion à la base de données MongoDB ---
 const connectDB = async () => {
   try {
-    // MODIFIÉ ICI pour utiliser MONGODB_URI (avec DB)
-    if (!process.env.MONGODB_URI) {
+    if (!process.env.MONGODB_URI) { // Utilise MONGODB_URI comme configuré
       console.error('ERREUR: La variable d\'environnement MONGODB_URI n\'est pas définie.');
       process.exit(1);
     }
-    // MODIFIÉ ICI pour utiliser MONGODB_URI (avec DB)
     const conn = await mongoose.connect(process.env.MONGODB_URI);
     console.log(`MongoDB Connecté: ${conn.connection.host}`);
   } catch (error) {
@@ -46,8 +38,22 @@ const connectDB = async () => {
 connectDB();
 
 // --- Middlewares ---
+
+// Configuration CORS pour autoriser plusieurs origines
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:3000', // Votre URL Railway existante et localhost pour le dev
+  'https://www.mdmcmusicads.com' // Ajoutez votre domaine personnalisé ici
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Autoriser les requêtes sans origine (comme les applis mobiles ou Postman) OU si l'origine est dans la liste blanche
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('L\'accès CORS pour cette origine n\'est pas autorisé.'));
+    }
+  },
   credentials: true
 }));
 
@@ -64,25 +70,28 @@ app.use('/api/auth', authRoutes);
 app.use('/api/artists', artistRoutes);
 app.use('/api/smartlinks', smartlinkRoutes);
 app.use('/api/upload', uploadRoutes);
-// app.use('/api/users', userRoutes);
-// app.use('/api/wordpress', wordpressRoutes);
 
 app.get('/api', (req, res) => {
   res.status(200).json({ success: true, message: 'API MDMC Music Ads SmartLink Builder est opérationnelle !' });
 });
 
 // --- Middleware de Gestion d'Erreurs Global ---
+// (Le reste de votre middleware errorHandler comme précédemment)
 app.use((err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
   console.error('--- GESTIONNAIRE D\'ERREURS GLOBAL ---');
   console.error('Message:', err.message);
-  if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+  if (err.name === 'Error' && err.message.includes('L\'accès CORS pour cette origine n\'est pas autorisé.')) {
+    // Erreur CORS spécifique générée par notre configuration
+    error = new ErrorResponse(err.message, 403); // 403 Forbidden
+  } else if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
       console.error('Erreur Complète:', err);
       if(err.stack) console.error('Stack:', err.stack);
   }
   console.error('------------------------------------');
+
 
   if (err.name === 'CastError' && err.kind === 'ObjectId') {
     const message = `Ressource non trouvée. L'identifiant fourni est invalide: ${err.value}`;
@@ -108,10 +117,8 @@ app.use((err, req, res, next) => {
     const message = 'Votre session a expiré. Veuillez vous reconnecter.';
     error = new ErrorResponse(message, 401);
   }
-  // Gérer les erreurs de Multer (si vous l'utilisez pour l'upload)
-  // Assurez-vous d'importer multer si vous le référencez directement ici (MulterError)
-  // const multer = require('multer'); // Si besoin d'importer pour instanceof MulterError
-  if (err.name === 'MulterError') { // Vérifier si l'erreur est une instance de MulterError
+  const multer = require('multer'); // Importer multer ici pour vérifier l'instance
+  if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
         error = new ErrorResponse('Le fichier est trop volumineux. La taille maximale est de 5MB.', 400);
     } else {
