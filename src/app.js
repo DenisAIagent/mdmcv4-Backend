@@ -1,257 +1,164 @@
-// src/app.js (Backend Principal)
+// backend/app.js (ou server.js)
 
-// 1. Charger les variables d'environnement (.env) en tout premier
-require("dotenv").config();
+// Charger les variables d'environnement depuis le fichier .env (si vous en utilisez un)
+// require('dotenv').config(); // Si vous utilisez dotenv, sinon assurez-vous que vos variables d'env sont chargées
+// Pour un projet avec import/export ES6 (si package.json a "type": "module"):
+// import dotenv from 'dotenv';
+// dotenv.config();
 
-// 2. Importer les modules nécessaires
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const helmet = require("helmet"); // Pour la sécurité des en-têtes HTTP
-const morgan = require("morgan"); // Pour le logging des requêtes HTTP
-const path = require("path");
-const cookieParser = require('cookie-parser'); // Pour parser les cookies (essentiel pour JWT HttpOnly)
-const ErrorResponse = require('../utils/errorResponse'); // Adaptez le chemin si nécessaire
-const rateLimit = require('express-rate-limit'); // Pour limiter le taux de requêtes (sécurité)
-const mongoSanitize = require('express-mongo-sanitize'); // Pour prévenir les injections NoSQL
-const xss = require('xss-clean'); // Pour prévenir les attaques XSS (Cross-Site Scripting)
-const hpp = require('hpp'); // Pour protéger contre la pollution des paramètres HTTP
+const express = require('express');
+const mongoose = require('mongoose'); // Si vous utilisez Mongoose pour MongoDB
+const cors = require('cors'); // Pour gérer les requêtes Cross-Origin
+const cookieParser = require('cookie-parser'); // Pour parser les cookies (utile si JWT est dans les cookies)
+const morgan = require('morgan'); // Pour le logging HTTP (optionnel, utile en développement)
 
-// 3. Importation des fichiers de Routes
-// Vérifiez attentivement que ces chemins sont corrects par rapport à l'emplacement de app.js
-const authRoutes = require("../routes/auth.routes.js");
-const userRoutes = require("../routes/user.routes.js");
-const marketingRoutes = require("../routes/marketing.routes.js");
-const wordpressRoutes = require("../routes/wordpress.routes.js");
-const landingPageRoutes = require("../routes/landingPage.routes.js");
-const reviewRoutes = require("../routes/reviews.routes.js");
-const chatbotRoutes = require("../routes/chatbot.routes.js");
-const artistRoutes = require("../routes/artists.routes.js");
-const smartLinkRoutes = require("../routes/smartLinkRoutes.js");
-// const uploadRoutes = require('../routes/upload.routes.js'); // Décommentez si vous avez ce fichier
+// Importer la classe ErrorResponse (si vous l'utilisez)
+const ErrorResponse = require('./utils/errorResponse'); // Adaptez le chemin
+// Importer le middleware de gestion d'erreurs global
+const errorHandler = require('./middleware/errorHandler'); // Adaptez le chemin (nous allons le définir ci-dessous aussi)
 
-// 4. Initialisation de l'application Express
+// --- Importer vos fichiers de routes ---
+const authRoutes = require('./routes/authRoutes');             // Exemple, adaptez le chemin
+const artistRoutes = require('./routes/artistRoutes');         // Exemple, adaptez le chemin
+const smartlinkRoutes = require('./routes/smartlinkRoutes');   // NOUVEAU, adaptez le chemin
+const uploadRoutes = require('./routes/uploadRoutes');         // Exemple, adaptez le chemin
+// Ajoutez d'autres routeurs ici si nécessaire
+
+// Initialiser l'application Express
 const app = express();
 
-// 5. Middlewares de Sécurité (à appliquer tôt)
-app.set('trust proxy', 1); // Nécessaire pour express-rate-limit derrière un proxy (comme Railway)
-app.use(helmet()); // Définit des en-têtes HTTP sécurisés
-app.use(mongoSanitize()); // Nettoie les données pour prévenir l'injection NoSQL
-app.use(xss()); // Nettoie les entrées pour prévenir les attaques XSS
-app.use(hpp()); // Protège contre la pollution des paramètres HTTP
-
-// 6. Configuration CORS (Cross-Origin Resource Sharing)
-const allowedOrigins = [
-  'https://www.mdmcmusicads.com',                   // URL frontend Production
-  'https://mdmcv4-frontend-production.up.railway.app', // URL frontend Railway (si différente)
-  'http://localhost:5173',                          // Serveur dev local Vite (exemple)
-  // Ajoutez d'autres origines si nécessaire (ex: localhost:3000 pour CRA)
-];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    console.log("🌐 CORS request check for origin:", origin); // Log pour voir l'origine reçue
-    // Autoriser les requêtes sans origine OU celles venant des origines autorisées
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`❌ CORS blocked for origin: ${origin}`); // Log si bloqué
-      callback(new Error('Non autorisé par la politique CORS')); // Rejeter si l'origine n'est pas dans la liste
-    }
-  },
-  credentials: true, // INDISPENSABLE pour autoriser l'envoi/réception de cookies (JWT HttpOnly)
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Méthodes HTTP autorisées
-  optionsSuccessStatus: 204 // Répond OK aux requêtes preflight OPTIONS
+// --- Connexion à la base de données MongoDB (Exemple avec Mongoose) ---
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      // Options pour éviter les avertissements de dépréciation Mongoose
+      // useNewUrlParser: true, // Plus nécessaire dans Mongoose 6+
+      // useUnifiedTopology: true, // Plus nécessaire dans Mongoose 6+
+      // useCreateIndex: true, // Plus nécessaire, les index sont créés via schema.index()
+      // useFindAndModify: false, // Plus nécessaire
+    });
+    console.log(`MongoDB Connecté: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`Erreur de connexion MongoDB: ${error.message}`);
+    process.exit(1); // Quitter le processus avec échec
+  }
 };
 
-app.use(cors(corsOptions)); // Appliquer le middleware CORS
+connectDB(); // Appeler la fonction de connexion
 
-// 7. Middleware de Logging (Morgan)
-// N'active le logging détaillé qu'en mode développement
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
+// --- Middlewares ---
+
+// Activer CORS pour toutes les routes (ou configurez des options spécifiques)
+// Exemple de configuration CORS plus permissive pour le développement :
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // URL de votre frontend
+  credentials: true // Important si vous utilisez des cookies ou des sessions
+}));
+
+// Morgan pour le logging HTTP en mode développement (optionnel)
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
 }
 
-// 8. Middleware de Parsing du Corps de Requête
-app.use(express.json({ limit: '10kb' })); // Parser les corps JSON (avec limite de taille)
-app.use(express.urlencoded({ extended: true, limit: '10kb' })); // Parser les corps URL-encoded
-
-// 9. Middleware pour parser les Cookies
-// Doit être avant tout middleware ou route qui a besoin d'accéder à req.cookies (ex: 'protect')
+// Parser le corps des requêtes JSON
+app.use(express.json());
+// Parser le corps des requêtes URL-encoded
+app.use(express.urlencoded({ extended: true }));
+// Parser les cookies
 app.use(cookieParser());
 
-// 10. Rate Limiting (Limitation du Taux de Requêtes)
-// Appliquer à toutes les routes API pour prévenir les abus
-const limiter = rateLimit({
-	windowMs: 10 * 60 * 1000, // Fenêtre de 10 minutes
-	max: 100, // Limite chaque IP à 100 requêtes par fenêtre (ajustez selon vos besoins)
-  message: 'Trop de requêtes depuis cette IP, veuillez réessayer après 10 minutes',
-  standardHeaders: true, // Retourne les informations de limite dans les en-têtes `RateLimit-*`
- 	legacyHeaders: false, // Désactive les anciens en-têtes `X-RateLimit-*`
-  // keyGenerator est géré automatiquement si 'trust proxy' est défini
-});
-app.use('/api', limiter); // Appliquer seulement aux routes API
+// --- Monter les Routeurs ---
+// Les routes seront préfixées par /api
+app.use('/api/auth', authRoutes);             // Ex: /api/auth/login, /api/auth/register
+app.use('/api/artists', artistRoutes);         // Ex: /api/artists, /api/artists/:slugOrId
+app.use('/api/smartlinks', smartlinkRoutes);   // Ex: /api/smartlinks, /api/smartlinks/:id
+app.use('/api/upload', uploadRoutes);         // Ex: /api/upload/image
 
-// 11. Route de Vérification de Santé (/health)
-// Définie avant les routes API pour un accès facile
-app.get("/health", (req, res) => {
-  const dbState = mongoose.connection.readyState;
-  const isDbConnected = dbState === 1; // 1 = connected
-  const healthStatus = isDbConnected ? "ok" : "error";
-  const statusCode = isDbConnected ? 200 : 503;
-
-  res.status(statusCode).json({
-      status: healthStatus,
-      message: "MDMC Backend API Status",
-      database: isDbConnected ? "connected" : `disconnected (state: ${dbState})`
-  });
+// Route de test simple pour vérifier que le serveur fonctionne
+app.get('/api', (req, res) => {
+  res.json({ message: 'API MDMC Music Ads SmartLink Builder fonctionne !' });
 });
 
-// 12. Montage des Routes API (/api/)
-const apiBasePath = "/api"; // Préfixe pour toutes les routes API
-
-app.use(`${apiBasePath}/auth`, authRoutes);
-
-// ***** AJOUT POUR DEBUG *****
-// Inspecter les routes enregistrées pour /api/auth juste après le montage
-try {
-    if (authRoutes && authRoutes.stack) {
-        console.log('--- Routes enregistrées pour /api/auth ---');
-        authRoutes.stack.forEach(function(layer){
-            if (layer.route && layer.route.path && layer.route.methods){
-                // Affiche la méthode et le chemin relatif à /api/auth
-                console.log(`[${Object.keys(layer.route.methods).join(', ').toUpperCase()}] ${layer.route.path}`);
-            }
-        });
-        console.log('-----------------------------------------');
-    } else {
-         console.log('AuthRoutes n\'est pas un routeur Express standard ou est vide.');
-    }
-} catch (e) {
-    console.error("Erreur lors de l'inspection des routes auth:", e);
-}
-// ***** FIN AJOUT POUR DEBUG *****
-
-app.use(`${apiBasePath}/users`, userRoutes);
-app.use(`${apiBasePath}/marketing`, marketingRoutes);
-app.use(`${apiBasePath}/wordpress`, wordpressRoutes);
-app.use(`${apiBasePath}/landing-pages`, landingPageRoutes);
-app.use(`${apiBasePath}/reviews`, reviewRoutes);
-app.use(`${apiBasePath}/chatbot`, chatbotRoutes);
-app.use(`${apiBasePath}/artists`, artistRoutes);
-app.use(`${apiBasePath}/smartlinks`, smartLinkRoutes);
-// app.use(`${apiBasePath}/upload`, uploadRoutes); // Décommentez si vous avez un fichier upload.routes.js
-
-// 13. Gestionnaire 404 Not Found
-// Attrape toutes les requêtes qui n'ont pas matché une route valide
-// DOIT être défini APRÈS toutes les autres routes.
-app.use((req, res, next) => {
-    // Utilise l'objet ErrorResponse pour standardiser
-    next(new ErrorResponse(`Route non trouvée - ${req.originalUrl}`, 404));
-});
-
-// 14. Middleware Global de Gestion des Erreurs
-// Attrape les erreurs passées via next(err)
-// DOIT être défini en DERNIER middleware.
-// eslint-disable-next-line no-unused-vars
+// --- Middleware de Gestion d'Erreurs Global ---
+// Doit être défini APRÈS toutes les autres routes et middlewares.
+// Si vous avez créé un fichier séparé (ex: middleware/errorHandler.js), importez-le.
+// Sinon, vous pouvez définir la logique ici :
 app.use((err, req, res, next) => {
-  console.error("--- Erreur Capturée par le Gestionnaire Global ---");
-  console.error("Nom:", err.name);
-  console.error("Message:", err.message);
-  // Log la stack trace seulement en développement pour le debug
-  if (process.env.NODE_ENV === "development") {
-       console.error("Stack:", err.stack);
+  let error = { ...err }; // Crée une copie de l'objet erreur
+  error.message = err.message; // S'assurer que le message est copié
+
+  // Log de l'erreur pour le développeur (console ou un système de logging)
+  console.error('-------------------- ERROR LOG --------------------');
+  console.error('Message:', error.message);
+  if (process.env.NODE_ENV === 'development') { // Afficher la stack trace seulement en dev
+    console.error('Stack Trace:', err.stack);
+  }
+  console.error('-------------------------------------------------');
+
+
+  // Erreur Mongoose: ObjectId invalide (CastError)
+  if (err.name === 'CastError' && err.kind === 'ObjectId') {
+    const message = `Ressource non trouvée. ID invalide: ${err.value}`;
+    error = new ErrorResponse(message, 404); // Utilise votre classe ErrorResponse
   }
 
-  // Copie de l'erreur pour ne pas modifier l'original
-  let error = { ...err };
-  error.message = err.message; // Assurer que le message est copié
+  // Erreur Mongoose: Duplication de champ unique (code 11000)
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyValue)[0];
+    const value = err.keyValue[field];
+    const message = `La valeur '${value}' pour le champ '${field}' existe déjà. Veuillez en choisir une autre.`;
+    error = new ErrorResponse(message, 400); // 400 Bad Request
+  }
 
-  // Gestion spécifique des erreurs communes
-  if (err.name === "CastError" && err.kind === 'ObjectId') {
-      const message = `Ressource non trouvée. Format d'ID invalide: ${err.value}`;
-      error = new ErrorResponse(message, 404);
+  // Erreur Mongoose: Échec de validation (ValidationError)
+  if (err.name === 'ValidationError') {
+    // Concatène tous les messages d'erreur de validation
+    // Ou retourne seulement le premier pour la simplicité : Object.values(err.errors).map(val => val.message)[0]
+    const messages = Object.values(err.errors).map(val => val.message).join('. ');
+    const message = `Erreur de validation des données: ${messages}`;
+    error = new ErrorResponse(message, 400); // 400 Bad Request
   }
-  if (err.code === 11000) { // Erreur de duplication MongoDB
-      const field = Object.keys(err.keyValue)[0];
-      const value = err.keyValue[field];
-      const message = `La valeur '${value}' existe déjà pour le champ unique '${field}'.`;
-      error = new ErrorResponse(message, 400);
-  }
-  if (err.name === "ValidationError") { // Erreur de validation Mongoose
-      const messages = Object.values(err.errors).map(val => val.message);
-      const message = messages[0] || 'Erreur de validation des données.';
-      error = new ErrorResponse(message, 400);
-  }
-   if (err.name === 'JsonWebTokenError') {
-       error = new ErrorResponse('Token invalide.', 401);
-   }
-   if (err.name === 'TokenExpiredError') {
-       error = new ErrorResponse('Session expirée.', 401);
-   }
-   if (err.message === 'Non autorisé par la politique CORS') {
-       error = new ErrorResponse(err.message, 403); // Forbidden
-   }
-   // Ajoutez d'autres gestions d'erreurs spécifiques si nécessaire
 
-  // Réponse d'erreur standardisée
+  // Erreur JWT: Token invalide ou expiré (géré dans le middleware 'protect')
+  // Si ErrorResponse est déjà utilisé dans 'protect', cette section peut ne pas être nécessaire ici
+  // si 'protect' appelle déjà next() avec une instance d'ErrorResponse.
+  if (err.name === 'JsonWebTokenError') {
+    const message = 'Token invalide. Veuillez vous reconnecter.';
+    error = new ErrorResponse(message, 401); // 401 Unauthorized
+  }
+  if (err.name === 'TokenExpiredError') {
+    const message = 'Votre session a expiré. Veuillez vous reconnecter.';
+    error = new ErrorResponse(message, 401); // 401 Unauthorized
+  }
+
+  // Réponse finale d'erreur au client
   res.status(error.statusCode || 500).json({
-      success: false,
-      error: error.message || "Erreur Interne du Serveur"
+    success: false,
+    error: error.message || 'Erreur Interne du Serveur',
+    // data: null // Optionnel
   });
 });
 
 
-// 15. Connexion à la Base de Données & Démarrage du Serveur
-const PORT = process.env.PORT || 5000; // Utilise le port défini par Railway ou 5000 en local
-const MONGODB_URI = process.env.MONGODB_URI;
+// --- Démarrage du Serveur ---
+const PORT = process.env.PORT || 5000; // Utiliser le port défini dans .env ou 5000 par défaut
 
-if (!MONGODB_URI) {
-    console.error("\x1b[31m%s\x1b[0m", "ERREUR FATALE: La variable d'environnement MONGODB_URI n'est pas définie."); // En rouge
-    process.exit(1); // Arrête l'application si la DB n'est pas configurée
-}
+const server = app.listen(
+  PORT,
+  console.log(
+    `Serveur démarré en mode ${process.env.NODE_ENV || 'development'} sur le port ${PORT}`
+  )
+);
 
-let server; // Référence au serveur pour fermeture propre
-
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    console.log("\x1b[32m%s\x1b[0m", "✅ Connecté à MongoDB"); // En vert
-    // Démarrer le serveur Express SEULEMENT après connexion DB réussie
-    server = app.listen(PORT, () => {
-      console.log(`🚀 Serveur lancé sur le port ${PORT} en mode ${process.env.NODE_ENV || "development"}`);
-    });
-  })
-  .catch((err) => {
-    console.error("\x1b[31m%s\x1b[0m", "❌ Connexion MongoDB échouée:", err.message);
-    process.exit(1); // Arrête l'application si la connexion échoue
-  });
-
-// 16. Gestion Propre des Erreurs Non Capturées et Arrêts Serveur
-process.on("unhandledRejection", (err, promise) => {
-  console.error("\x1b[31m%s\x1b[0m", `❌ ERREUR: Rejet de promesse non traité: ${err.message}`);
-  if (server) {
-    server.close(() => {
-        console.log("Serveur arrêté proprement suite à un rejet non traité.");
-        process.exit(1);
-    });
-  } else {
-    process.exit(1);
-  }
+// Gérer les rejets de promesses non interceptés (erreurs globales)
+process.on('unhandledRejection', (err, promise) => {
+  console.error(`Erreur non gérée (Unhandled Rejection): ${err.message}`);
+  // Fermer le serveur et quitter le processus proprement
+  server.close(() => process.exit(1));
 });
 
+// Gérer les exceptions non interceptées
 process.on('uncaughtException', (err) => {
-  console.error("\x1b[31m%s\x1b[0m", `❌ ERREUR: Exception non traitée: ${err.message}`);
-  console.error(err.stack); // Log la stack trace pour le debug
-  if (server) {
-    server.close(() => {
-      console.log('Serveur arrêté proprement suite à une exception non traitée.');
-      process.exit(1);
-    });
-  } else {
-    process.exit(1);
-  }
+    console.error(`Exception non gérée (Uncaught Exception): ${err.message}`);
+    server.close(() => process.exit(1));
 });
-
-// 17. Exporter l'application (utile pour les tests unitaires/intégration)
-module.exports = app;
