@@ -1,58 +1,50 @@
-// middleware/logClick.js
-const asyncHandler = require("./asyncHandler");
-const SmartLink = require("../models/SmartLink");
-const Artist = require("../models/Artist"); // Importer le modèle Artist
-const ErrorResponse = require("../utils/errorResponse");
+// backend/middleware/logClick.js
+const asyncHandler = require("./asyncHandler"); // Adaptez le chemin si nécessaire
+const SmartLink = require("../models/SmartLink"); // Adaptez le chemin
+const Artist = require("../models/Artist");     // Adaptez le chemin
+// ErrorResponse n'est généralement pas nécessaire ici car on ne bloque pas la requête en cas d'échec du log.
 
 /**
- * @desc Middleware pour enregistrer un clic sur un SmartLink lors de la récupération de ses détails
+ * @desc Middleware pour enregistrer une vue sur un SmartLink.
+ * Doit être placé sur la route qui récupère les détails d'un SmartLink public.
  */
 exports.logClick = asyncHandler(async (req, res, next) => {
-  const trackSlugParam = req.params.trackSlug; // Vient de la route /details/:artistSlug/:trackSlug
-  const artistSlugParam = req.params.artistSlug; // Vient de la route
+  const trackSlugParam = req.params.trackSlug;
+  const artistSlugParam = req.params.artistSlug;
 
   if (!trackSlugParam || !artistSlugParam) {
-    console.warn("logClick: trackSlug ou artistSlug manquant dans les paramètres de la requête pour le tracking.");
-    // On continue pour que le contrôleur principal puisse gérer l'erreur de paramètres manquants si nécessaire.
-    return next(); 
+    console.warn("logClick Middleware: trackSlug ou artistSlug manquant dans les paramètres de la requête.");
+    return next(); // On continue, le contrôleur principal gérera l'erreur de paramètre manquant.
   }
 
   try {
-    // 1. Trouver l'artiste par son slug pour obtenir son ID
-    const artist = await Artist.findOne({ slug: artistSlugParam });
+    const artist = await Artist.findOne({ slug: artistSlugParam }).select('_id'); // On n'a besoin que de l'ID de l'artiste
 
     if (!artist) {
-      console.warn(`logClick: Artiste non trouvé avec le slug '${artistSlugParam}'. Le clic ne sera pas enregistré.`);
-      // Si l'artiste n'est pas trouvé, le smartlink ne peut pas être identifié de manière unique.
-      // Le contrôleur getSmartLinkBySlugs renverra probablement un 404.
-      return next();
+      console.warn(`logClick Middleware: Artiste non trouvé avec le slug '${artistSlugParam}'. La vue ne sera pas enregistrée.`);
+      return next(); // Artiste non trouvé, le contrôleur renverra un 404.
     }
 
-    // 2. Utiliser l'ID de l'artiste et le trackSlug pour trouver et incrémenter le SmartLink
-    // On ne retourne pas le document mis à jour pour optimiser (new: false)
-    // On ne lance pas les validateurs car on ne fait qu'incrémenter un nombre (runValidators: false)
+    // Utiliser updateOne pour incrémenter directement sans récupérer le document entier.
+    // C'est plus performant si on n'a pas besoin du document SmartLink ici.
     const result = await SmartLink.updateOne(
-      { slug: trackSlugParam, artistId: artist._id },
-      { $inc: { clickCount: 1 } }
+      { slug: trackSlugParam, artistId: artist._id, isPublished: true }, // S'assurer qu'il est publié
+      { $inc: { viewCount: 1 } } // MODIFIÉ : Incrémente viewCount
     );
 
     if (result.matchedCount === 0) {
-      // Aucun document n'a été trouvé avec ces critères.
-      console.warn(`logClick: SmartLink non trouvé pour trackSlug='${trackSlugParam}' et artistId='${artist._id}'. Le clic n'a pas été enregistré.`);
+      console.warn(`logClick Middleware: SmartLink non trouvé ou non publié pour trackSlug='${trackSlugParam}' et artistId='${artist._id}'. La vue n'a pas été enregistrée.`);
     } else if (result.modifiedCount === 0 && result.matchedCount === 1) {
-      // Un document a été trouvé mais non modifié (cela ne devrait pas arriver avec $inc à moins d'un problème)
-      console.warn(`logClick: SmartLink trouvé pour trackSlug='${trackSlugParam}' et artistId='${artist._id}', mais le compteur de clics n'a pas été incrémenté.`);
+      // Cela peut arriver si une autre requête l'a incrémenté presque en même temps, ou si $inc a un souci (rare).
+      console.warn(`logClick Middleware: SmartLink trouvé, mais viewCount non modifié (matched: ${result.matchedCount}, modified: ${result.modifiedCount}).`);
     } else {
-      // Le clic a été enregistré (ou du moins, la commande d'update a été envoyée)
-      console.log(`logClick: Tentative d'enregistrement de clic pour SmartLink slug='${trackSlugParam}', artistId='${artist._id}'.`);
+      console.log(`logClick Middleware: Vue enregistrée pour SmartLink trackSlug='${trackSlugParam}', artistId='${artist._id}'.`);
     }
-
   } catch (error) {
-    // En cas d'erreur durant la recherche ou la mise à jour, on logue l'erreur mais on continue
+    // En cas d'erreur durant le logging du clic, on logue l'erreur mais on continue
     // pour ne pas bloquer la requête principale de récupération des détails du SmartLink.
-    console.error(`logClick: Erreur lors du tracking du clic pour trackSlug='${trackSlugParam}', artistSlug='${artistSlugParam}':`, error);
+    console.error(`logClick Middleware: Erreur lors du tracking de la vue pour trackSlug='${trackSlugParam}', artistSlug='${artistSlugParam}':`, error);
   }
   
-  next();
+  next(); // Toujours appeler next() pour passer au contrôleur suivant.
 });
-
