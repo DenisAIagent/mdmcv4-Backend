@@ -1,13 +1,6 @@
-<<<<<<< HEAD
-// backend/routes/smartlinkRoutes.js
-const express = require("express");
-const router = express.Router();
-
-=======
 // routes/smartLinkRoutes.js
 
 const express = require('express');
->>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
 const {
   createSmartLink,
   getAllSmartLinks,
@@ -15,17 +8,16 @@ const {
   updateSmartLinkById,
   deleteSmartLinkById,
   getSmartLinksByArtistSlug,
-<<<<<<< HEAD
   getPublicSmartLinkBySlugs,
   logPlatformClick
-} = require("../controllers/smartLinkController"); // Adaptez le chemin
+} = require('../controllers/smartLinkController');
 
 // Middlewares d'authentification et d'autorisation
-const { protect, authorize } = require("../middleware/auth"); // Adaptez le chemin
+const { protect, authorize } = require('../middleware/auth');
 // Middleware pour logguer les vues de la page publique
-const { logClick } = require("../middleware/logClick"); // Adaptez le chemin
+const { logClick } = require('../middleware/logClick');
 
-const { body, param, query, validationResult } = require("express-validator");
+const { body, param, query, validationResult } = require('express-validator');
 
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
@@ -188,53 +180,3 @@ router.post(
 );
 
 module.exports = router;
-=======
-  getSmartLinkBySlugs
-} = require('../controllers/smartLinkController'); // Importer les fonctions du contrôleur
-const Click = require('../models/Click');
-
-// Importer les middlewares de protection (si/quand vous les aurez)
-// const { protect, authorize } = require('../middleware/auth'); // Exemple
-
-const router = express.Router();
-
-// --- Routes Principales CRUD (généralement pour l'admin) ---
-
-// Correspondra à /api/v1/smartlinks
-router.route('/')
-  .post(/* protect, authorize('admin'), */ createSmartLink)      // Créer un SmartLink
-  .get(/* protect, authorize('admin'), */ getAllSmartLinks);       // Lister tous les SmartLinks (avec filtres/pagination)
-
-// Correspondra à /api/v1/smartlinks/:id
-router.route('/:id')
-  .get(/* protect, authorize('admin'), */ getSmartLinkById)        // Lire un SmartLink par son ID
-  .put(/* protect, authorize('admin'), */ updateSmartLinkById)     // Mettre à jour un SmartLink par son ID
-  .delete(/* protect, authorize('admin'), */ deleteSmartLinkById); // Supprimer un SmartLink par son ID
-
-
-// --- Routes spécifiques pour récupérer les données par Slugs (pour frontend/public) ---
-
-// Correspondra à /api/v1/smartlinks/by-artist/:artistSlug
-router.route('/by-artist/:artistSlug')
-  .get(getSmartLinksByArtistSlug); // Récupérer tous les SmartLinks d'un artiste via son slug
-
-// Correspondra à /api/v1/smartlinks/details/:artistSlug/:trackSlug
-router.route('/details/:artistSlug/:trackSlug')
-  .get(getSmartLinkBySlugs); // Récupérer les détails d'un SmartLink spécifique via les slugs
-
-// Logger un clic sur un smartlink
-router.post('/smartlinks/:id/click', async (req, res) => {
-  try {
-    const { platform } = req.body;
-    const { id } = req.params;
-    if (!platform) return res.status(400).json({ error: 'Plateforme requise' });
-
-    await Click.create({ smartLinkId: id, platform });
-    res.status(201).json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
-module.exports = router; // Exporter le routeur configuré
->>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
