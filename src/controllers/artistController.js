@@ -1,7 +1,7 @@
 // controllers/artistController.js (Updated)
 
 const Artist = require("../models/Artist"); // Importer le modèle Artist
-const asyncHandler = require("../middleware/async"); // Utilitaire pour gérer les erreurs dans les fonctions async
+const asyncHandler = require("../middleware/asyncHandler"); // Utilitaire pour gérer les erreurs dans les fonctions async
 const ErrorResponse = require("../utils/errorResponse"); // Utilitaire pour standardiser les erreurs
 
 /**
