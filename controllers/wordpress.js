@@ -1,7 +1,11 @@
 const WordPressConnection = require('../models/WordPressConnection');
 const WordPressPost = require('../models/WordPressPost');
 const ErrorResponse = require('../utils/errorResponse');
+<<<<<<< HEAD
 const asyncHandler = require("../middleware/asyncHandler");
+=======
+const asyncHandler = require('../middleware/async');
+>>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
 const crypto = require('crypto');
 
 // @desc    Connecter à un site WordPress
