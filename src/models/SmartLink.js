@@ -99,7 +99,7 @@ smartLinkSchema.pre('save', function(next) {
     this.slug = slugify(this.trackTitle, {
       lower: true,
       strict: true,
-      remove: /[*+~.()'"!:@#%$^&={}|[\]\\;\/?]/g
+      remove: /[*+~.()'"!:@#%$^&={}|[\]\\;/?]/g
     });
   }
   next();

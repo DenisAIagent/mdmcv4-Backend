@@ -1,10 +1,6 @@
 const ChatbotConfig = require('../models/ChatbotConfig');
 const ErrorResponse = require('../utils/errorResponse');
-<<<<<<< HEAD
-const asyncHandler = require("../middleware/asyncHandler");
-=======
-const asyncHandler = require('../middleware/async');
->>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
+const asyncHandler = require('../middleware/asyncHandler');
 const crypto = require('crypto');
 
 // @desc    Obtenir la configuration du chatbot

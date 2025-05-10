@@ -10,8 +10,8 @@ const ReviewSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, 'Veuillez ajouter un email'], // Champ requis basé sur le formulaire
-    match: [ // Validation simple du format email
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+    match: [
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
       'Veuillez ajouter un email valide'
     ]
   },

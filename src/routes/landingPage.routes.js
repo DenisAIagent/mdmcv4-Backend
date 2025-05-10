@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 // routes/landingPage.routes.js (Middleware Réactivé)
 
 const express = require("express");
-
-=======
-const express = require('express');
->>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
 const {
   getTemplates,
   getTemplate,
@@ -17,8 +12,6 @@ const {
   unpublishLandingPage,
   deleteLandingPage,
   previewLandingPage
-<<<<<<< HEAD
-  // Assurez-vous que toutes les fonctions utilisées dans les routes sont bien importées ici
 } = require("../controllers/landingPageController.js"); // <-- Chemin Contrôleur OK
 
 const router = express.Router();
@@ -58,36 +51,5 @@ router.route('/:id/unpublish')
 
 router.route('/:id/preview')
   .get(previewLandingPage);   // GET /api/landing-pages/:id/preview
-
-=======
-} = require('../controllers/landingPage');
-
-const router = express.Router();
-
-// Importer les middleware de protection et d'autorisation
-const { protect, authorize } = require('../middleware/auth');
-
-// Appliquer la protection et l'autorisation à toutes les routes
-router.use(protect);
-router.use(authorize('admin'));
-
-// Routes pour les templates de landing page
-router.get('/templates', getTemplates);
-router.get('/templates/:id', getTemplate);
-
-// Routes pour les landing pages
-router.route('/')
-  .get(getLandingPages)
-  .post(createLandingPage);
-
-router.route('/:id')
-  .get(getLandingPage)
-  .put(updateLandingPage)
-  .delete(deleteLandingPage);
-
-router.post('/:id/publish', publishLandingPage);
-router.post('/:id/unpublish', unpublishLandingPage);
-router.get('/:id/preview', previewLandingPage);
->>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
 
 module.exports = router;
