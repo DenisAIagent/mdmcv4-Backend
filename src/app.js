@@ -20,21 +20,30 @@ const app = express();
 // Configuration pour les proxies (nécessaire pour Railway)
 app.set('trust proxy', 1);
 
-// Configuration du rate limiter
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limite chaque IP à 100 requêtes par fenêtre
-  standardHeaders: true,
-  legacyHeaders: false,
-  trustProxy: true
-});
-
 // Middleware de sécurité
 app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true
 }));
+
+// Configuration du rate limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limite chaque IP à 100 requêtes par fenêtre
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for certain paths if needed
+    return false;
+  },
+  keyGenerator: (req) => {
+    // Use X-Forwarded-For header if available, otherwise use IP
+    return req.headers['x-forwarded-for'] || req.ip;
+  }
+});
+
+// Appliquer le rate limiter à toutes les routes
 app.use(limiter);
 
 // Middleware de logging
