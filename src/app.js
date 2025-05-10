@@ -16,6 +16,9 @@ connectDB();
 // Initialiser l'application Express
 const app = express();
 
+// Configuration pour les proxies (nécessaire pour Railway)
+app.set('trust proxy', 1);
+
 // Middleware de sécurité
 app.use(helmet());
 app.use(cors({
