@@ -20,16 +20,16 @@ exports.getArtists = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc    Obtenir un artiste
- * @route   GET /api/v1/artists/:id
+ * @desc    Obtenir un artiste par son slug
+ * @route   GET /api/v1/artists/:artistSlug
  * @access  Public
  */
-exports.getArtist = asyncHandler(async (req, res, next) => {
-  const artist = await Artist.findById(req.params.id);
+exports.getArtistBySlug = asyncHandler(async (req, res, next) => {
+  const artist = await Artist.findOne({ slug: req.params.artistSlug });
 
   if (!artist) {
     return next(
-      new ErrorResponse(`Artiste non trouvé avec l'id ${req.params.id}`, 404)
+      new ErrorResponse(`Artiste non trouvé avec le slug ${req.params.artistSlug}`, 404)
     );
   }
 
