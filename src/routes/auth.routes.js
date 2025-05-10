@@ -15,14 +15,61 @@ const router = express.Router();
 const { protect } = require('../middleware/auth');
 
 // Routes publiques
-router.post('/register', register);
-router.post('/login', login);
-router.post('/forgotpassword', forgotPassword);
-router.put('/resetpassword/:resettoken', resetPassword);
+router.post('/register', async (req, res, next) => {
+  try {
+    await register(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/login', async (req, res, next) => {
+  try {
+    await login(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/forgotpassword', async (req, res, next) => {
+  try {
+    await forgotPassword(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/resetpassword/:resettoken', async (req, res, next) => {
+  try {
+    await resetPassword(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Routes protégées
-router.get('/logout', protect, logout);
-router.get('/me', protect, getMe);
-router.put('/updatepassword', protect, updatePassword);
+router.get('/logout', protect, async (req, res, next) => {
+  try {
+    await logout(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/me', protect, async (req, res, next) => {
+  try {
+    await getMe(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/updatepassword', protect, async (req, res, next) => {
+  try {
+    await updatePassword(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;
