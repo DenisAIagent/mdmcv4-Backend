@@ -6,7 +6,7 @@ const {
   getReviews,
   updateReviewStatus,
   deleteReview
-} = require('../controllers/reviews');
+} = require('../controllers/reviewsController');
 
 // Importation des middlewares d'authentification et d'autorisation
 const { protect, authorize } = require('../middleware/auth');
