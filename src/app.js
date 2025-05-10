@@ -1,155 +1,72 @@
-// backend/src/app.js
-
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
-}
-
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors'); // Assurez-vous que cors est importé
-const cookieParser = require('cookie-parser');
+const dotenv = require('dotenv');
 const morgan = require('morgan');
-const path = require('path');
+const cors = require('cors');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const connectDB = require('./config/db');
+const errorHandler = require('./middleware/errorHandler');
 
-const ErrorResponse = require('../utils/errorResponse');
+// Charger les variables d'environnement
+dotenv.config({ path: '../.env' });
 
-// --- Importer vos fichiers de routes ---
-const authRoutes = require('../routes/auth.routes');
-const artistRoutes = require('../routes/artists.routes');
-const smartlinkRoutes = require('../routes/smartLinkRoutes');
-const uploadRoutes = require('../routes/uploadRoutes');
-
-const app = express();
-
-// --- Connexion à la base de données MongoDB ---
-const connectDB = async () => {
-  try {
-    if (!process.env.MONGODB_URI) { // Utilise MONGODB_URI comme configuré
-      console.error('ERREUR: La variable d\'environnement MONGODB_URI n\'est pas définie.');
-      process.exit(1);
-    }
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-    console.log(`MongoDB Connecté: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`Erreur de connexion MongoDB: ${error.message}`);
-    process.exit(1);
-  }
-};
+// Connexion à la base de données
 connectDB();
 
-// --- Middlewares ---
+// Initialiser l'application Express
+const app = express();
 
-// Configuration CORS pour autoriser plusieurs origines
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:3000', // Votre URL Railway existante et localhost pour le dev
-  'https://www.mdmcmusicads.com' // Ajoutez votre domaine personnalisé ici
-];
-
+// Middleware de sécurité
+app.use(helmet());
 app.use(cors({
-  origin: function (origin, callback) {
-    // Autoriser les requêtes sans origine (comme les applis mobiles ou Postman) OU si l'origine est dans la liste blanche
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('L\'accès CORS pour cette origine n\'est pas autorisé.'));
-    }
-  },
+  origin: process.env.FRONTEND_URL,
   credentials: true
 }));
 
+// Middleware de logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// Middleware pour parser le body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// --- Monter les Routeurs ---
-app.use('/api/auth', authRoutes);
-app.use('/api/artists', artistRoutes);
-app.use('/api/smartlinks', smartlinkRoutes);
-app.use('/api/upload', uploadRoutes);
+// Routes
+app.use('/api/v1/auth', require('./routes/auth.routes'));
+app.use('/api/v1/smartlinks', require('./routes/smartLinkRoutes'));
+app.use('/api/v1/artists', require('./routes/artists.routes'));
+app.use('/api/v1/users', require('./routes/user.routes'));
+app.use('/api/v1/reviews', require('./routes/reviews.routes'));
+app.use('/api/v1/wordpress', require('./routes/wordpress.routes'));
+app.use('/api/v1/chatbot', require('./routes/chatbot.routes'));
+app.use('/api/v1/landing-pages', require('./routes/landingPage.routes'));
+app.use('/api/v1/marketing', require('./routes/marketing.routes'));
+app.use('/api/v1/upload', require('./routes/uploadRoutes'));
+app.use('/api/v1/admin/stats', require('./routes/adminStats'));
 
-app.get('/api', (req, res) => {
-  res.status(200).json({ success: true, message: 'API MDMC Music Ads SmartLink Builder est opérationnelle !' });
-});
+// Middleware de gestion d'erreurs
+app.use(errorHandler);
 
-// --- Middleware de Gestion d'Erreurs Global ---
-// (Le reste de votre middleware errorHandler comme précédemment)
-app.use((err, req, res, next) => {
-  let error = { ...err };
-  error.message = err.message;
-
-  console.error('--- GESTIONNAIRE D\'ERREURS GLOBAL ---');
-  console.error('Message:', err.message);
-  if (err.name === 'Error' && err.message.includes('L\'accès CORS pour cette origine n\'est pas autorisé.')) {
-    // Erreur CORS spécifique générée par notre configuration
-    error = new ErrorResponse(err.message, 403); // 403 Forbidden
-  } else if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-      console.error('Erreur Complète:', err);
-      if(err.stack) console.error('Stack:', err.stack);
-  }
-  console.error('------------------------------------');
-
-
-  if (err.name === 'CastError' && err.kind === 'ObjectId') {
-    const message = `Ressource non trouvée. L'identifiant fourni est invalide: ${err.value}`;
-    error = new ErrorResponse(message, 404);
-  }
-  if (err.code === 11000) {
-    let field = Object.keys(err.keyValue)[0];
-    let value = err.keyValue[field];
-    field = field.charAt(0).toUpperCase() + field.slice(1);
-    const message = `Le champ '${field}' avec la valeur '${value}' existe déjà. Cette valeur doit être unique.`;
-    error = new ErrorResponse(message, 400);
-  }
-  if (err.name === 'ValidationError') {
-    const messages = Object.values(err.errors).map(val => val.message);
-    const message = `Données invalides: ${messages.join('. ')}`;
-    error = new ErrorResponse(message, 400);
-  }
-  if (err.name === 'JsonWebTokenError') {
-    const message = 'Authentification échouée (token invalide). Veuillez vous reconnecter.';
-    error = new ErrorResponse(message, 401);
-  }
-  if (err.name === 'TokenExpiredError') {
-    const message = 'Votre session a expiré. Veuillez vous reconnecter.';
-    error = new ErrorResponse(message, 401);
-  }
-  const multer = require('multer'); // Importer multer ici pour vérifier l'instance
-  if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-        error = new ErrorResponse('Le fichier est trop volumineux. La taille maximale est de 5MB.', 400);
-    } else {
-        error = new ErrorResponse(`Erreur d'upload de fichier: ${err.message}`, 400);
-    }
-  } else if (err.message === 'Seules les images sont autorisées!') {
-    error = new ErrorResponse(err.message, 400);
-  }
-
-  res.status(error.statusCode || 500).json({
+// Gestion des routes non trouvées
+app.use((req, res) => {
+  res.status(404).json({
     success: false,
-    error: error.message || 'Erreur Interne du Serveur'
+    error: 'Route non trouvée'
   });
 });
 
-// --- Démarrage du Serveur ---
-const PORT = process.env.PORT || 5001;
-const server = app.listen(
-  PORT,
-  console.log(
-    `Serveur démarré en mode ${process.env.NODE_ENV || 'inconnu (probablement development)'} sur le port ${PORT}`
-  )
-);
+// Définir le port
+const PORT = process.env.PORT || 5000;
 
+// Démarrer le serveur
+const server = app.listen(PORT, () => {
+  console.log(`Serveur démarré en mode ${process.env.NODE_ENV} sur le port ${PORT}`);
+});
+
+// Gestion des erreurs non capturées
 process.on('unhandledRejection', (err, promise) => {
-  console.error(`ERREUR (Unhandled Rejection): ${err.message || err}`);
+  console.log(`Erreur: ${err.message}`);
   server.close(() => process.exit(1));
-});
-process.on('uncaughtException', (err) => {
-    console.error(`ERREUR (Uncaught Exception): ${err.message || err}`);
-    server.close(() => process.exit(1));
-});
-
-module.exports = app;
+}); 
