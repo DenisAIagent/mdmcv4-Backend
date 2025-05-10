@@ -1,7 +1,11 @@
 // models/Artist.js
 
 const mongoose = require('mongoose');
+<<<<<<< HEAD
 const slugify = require('slugify'); // Assurez-vous que c'est installé: npm install slugify
+=======
+const slugify = require('slugify'); // Vous devrez installer cette dépendance : npm install slugify
+>>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
 
 const artistSchema = new mongoose.Schema(
   {
@@ -15,7 +19,11 @@ const artistSchema = new mongoose.Schema(
     slug: {
       type: String,
       unique: true, // Garantit que chaque slug est unique
+<<<<<<< HEAD
       index: true   // Ajout d'un index pour améliorer les performances de recherche par slug
+=======
+      // Le slug sera généré automatiquement, pas besoin de le rendre 'required' ici
+>>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
     },
     bio: {
       type: String,
@@ -27,6 +35,7 @@ const artistSchema = new mongoose.Schema(
       trim: true,
       // Vous pourriez ajouter une validation de format d'URL ici si nécessaire
       // match: [/https?:\/\/.+\..+/, 'Veuillez entrer une URL valide pour l\'image']
+<<<<<<< HEAD
     },
     // CHAMP AJOUTÉ : Site web de l'artiste
     websiteUrl: {
@@ -53,6 +62,10 @@ const artistSchema = new mongoose.Schema(
              _id: false // Généralement pas besoin d'ID unique pour chaque lien social
         }
     ]
+=======
+    }
+    // Pas besoin de déclarer createdAt et updatedAt explicitement
+>>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
   },
   {
     timestamps: true, // Ajoute automatiquement les champs createdAt et updatedAt gérés par Mongoose
@@ -72,6 +85,7 @@ artistSchema.pre('save', function(next) {
   this.slug = slugify(this.name, {
     lower: true,      // Convertit en minuscules
     strict: true,     // Supprime les caractères spéciaux non autorisés dans les URL (!, @, #, etc.)
+<<<<<<< HEAD
     remove: /[*+~.()'"!:@]/g // Conserve ta personnalisation si elle te convient
   });
   next(); // Passe au middleware ou à l'opération de sauvegarde suivante
@@ -83,3 +97,19 @@ artistSchema.pre('save', function(next) {
 const Artist = mongoose.model('Artist', artistSchema);
 
 module.exports = Artist; // Exporte le modèle pour pouvoir l'utiliser dans les contrôleurs
+=======
+    remove: /[*+~.()'"!:@]/g // Vous pouvez personnaliser les caractères à supprimer si besoin
+  });
+
+  // Vous pourriez ajouter ici une logique pour gérer les collisions de slugs si nécessaire,
+  // bien que le `unique: true` dans le schéma lèvera une erreur si une collision se produit
+  // lors de la tentative de sauvegarde par MongoDB.
+
+  next(); // Passe au middleware ou à l'opération de sauvegarde suivante
+});
+
+// Création du modèle à partir du schéma
+const Artist = mongoose.model('Artist', artistSchema);
+
+module.exports = Artist; // Exporte le modèle pour pouvoir l'utiliser dans les contrôleurs
+>>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
