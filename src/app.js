@@ -4,11 +4,12 @@ const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
 // Charger les variables d'environnement
-dotenv.config({ path: '../.env' });
+dotenv.config();
 
 // Connexion à la base de données
 connectDB();
@@ -19,12 +20,22 @@ const app = express();
 // Configuration pour les proxies (nécessaire pour Railway)
 app.set('trust proxy', 1);
 
+// Configuration du rate limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limite chaque IP à 100 requêtes par fenêtre
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true
+});
+
 // Middleware de sécurité
 app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true
 }));
+app.use(limiter);
 
 // Middleware de logging
 if (process.env.NODE_ENV === 'development') {
