@@ -5,7 +5,7 @@ const express = require("express");
 // *** LA CORRECTION ESSENTIELLE EST ICI ***
 const {
   createArtist,
-  getAllArtists,
+  getArtists,
   getArtistBySlug,
   updateArtist,
   deleteArtist
@@ -95,7 +95,7 @@ router.route("/")
     handleValidationErrors,
     createArtist
   )
-  .get(getAllArtists); // GET peut rester public ou être protégé si besoin
+  .get(getArtists); // Changé de getAllArtists à getArtists
 
 // Route pour les opérations sur un artiste spécifique via son slug ('/:artistSlug')
 router.route("/:artistSlug")
