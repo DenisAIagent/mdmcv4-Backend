@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 // routes/marketing.routes.js (Middleware Réactivé)
 
 const express = require("express");
 
+=======
+const express = require('express');
+>>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
 const {
   getIntegrations,
   getIntegration,
@@ -9,6 +13,7 @@ const {
   updateIntegration,
   deleteIntegration,
   testIntegration
+<<<<<<< HEAD
 } = require("../controllers/marketingController.js"); // Chemin contrôleur OK
 
 const router = express.Router();
@@ -33,5 +38,30 @@ router.route("/:id")
 
 router.route("/:id/test")
   .post(testIntegration);   // POST /api/marketing/:id/test
+=======
+} = require('../controllers/marketing');
+
+const router = express.Router();
+
+// Importer les middleware de protection et d'autorisation
+const { protect, authorize } = require('../middleware/auth');
+
+// Appliquer la protection et l'autorisation à toutes les routes
+router.use(protect);
+router.use(authorize('admin'));
+
+// Routes pour les intégrations marketing
+router.route('/')
+  .get(getIntegrations)
+  .post(createIntegration);
+
+router.route('/:id')
+  .get(getIntegration)
+  .put(updateIntegration)
+  .delete(deleteIntegration);
+
+router.route('/:id/test')
+  .post(testIntegration);
+>>>>>>> 7b8caee5 (Ajout des fichiers backend principaux : app.js, controllers, models, routes et évolutions SmartLink/Artistes/logs)
 
 module.exports = router;
