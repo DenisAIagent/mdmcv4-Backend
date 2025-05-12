@@ -6,7 +6,8 @@ const {
   getMe,
   updatePassword,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  confirmEmail
 } = require('../controllers/authController');
 const { loginLimiter } = require('../middleware/rateLimiter');
 
@@ -27,6 +28,14 @@ router.post('/register', async (req, res, next) => {
 router.post('/login', loginLimiter, async (req, res, next) => {
   try {
     await login(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/confirm-email/:token', async (req, res, next) => {
+  try {
+    await confirmEmail(req, res, next);
   } catch (error) {
     next(error);
   }

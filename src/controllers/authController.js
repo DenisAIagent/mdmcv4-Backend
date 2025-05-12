@@ -282,14 +282,15 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc     Confirmer l'email
- * @route    GET /api/v1/auth/confirm-email/:confirmtoken
+ * @desc     Confirmer l'email de l'utilisateur
+ * @route    GET /api/v1/auth/confirm-email/:token
  * @access   Public
  */
 exports.confirmEmail = asyncHandler(async (req, res, next) => {
+  // Hasher le token
   const confirmEmailToken = crypto
     .createHash('sha256')
-    .update(req.params.confirmtoken)
+    .update(req.params.token)
     .digest('hex');
 
   const user = await User.findOne({
@@ -298,13 +299,16 @@ exports.confirmEmail = asyncHandler(async (req, res, next) => {
   });
 
   if (!user) {
-    return next(new ErrorResponse('Token invalide', 400));
+    return next(new ErrorResponse('Token invalide ou expiré', 400));
   }
 
+  // Mettre à jour l'utilisateur
   user.isEmailConfirmed = true;
   user.confirmEmailToken = undefined;
   user.confirmEmailExpire = undefined;
   await user.save();
 
-  sendTokenResponse(user, 200, res);
+  // Rediriger vers le frontend avec un message de succès
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
+  res.redirect(`${frontendUrl}/login?confirmed=true`);
 });
