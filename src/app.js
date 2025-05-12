@@ -84,6 +84,12 @@ app.use('/api/*', (req, res) => {
   });
 });
 
+// Route spécifique pour /admin
+app.get('/admin', (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
+  res.redirect(`${frontendUrl}/admin`);
+});
+
 // Pour toutes les autres routes, rediriger vers le frontend
 app.get('*', (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
