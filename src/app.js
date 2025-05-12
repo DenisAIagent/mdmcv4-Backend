@@ -26,18 +26,31 @@ app.use(cookieParser());
 
 // Middleware de sécurité
 app.use(helmet());
+
+// Configuration CORS dynamique
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'https://www.mdmcmusicads.com',
+  'https://mdmcmusicads.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174'
+];
+
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL,
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174'
-  ],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // Autorise Postman, curl, etc.
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Support des requêtes pré-vol (preflight)
+app.options('*', cors());
 
 // Middleware de logging
 if (process.env.NODE_ENV === 'development') {
@@ -80,4 +93,4 @@ const server = app.listen(PORT, () => {
 process.on('unhandledRejection', (err, promise) => {
   console.log(`Erreur: ${err.message}`);
   server.close(() => process.exit(1));
-}); 
+});
