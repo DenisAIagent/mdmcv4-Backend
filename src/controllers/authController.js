@@ -137,7 +137,7 @@ exports.login = asyncHandler(async (req, res, next) => {
   }
 
   // Générer le token JWT
-  const token = user.getSignedJwtToken();
+  const token = generateToken(user._id);
   console.log('Token généré:', token);
 
   // Configurer les options du cookie
