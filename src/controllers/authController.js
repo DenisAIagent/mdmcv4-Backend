@@ -108,8 +108,11 @@ exports.register = asyncHandler(async (req, res, next) => {
  * @access   Public
  */
 exports.login = asyncHandler(async (req, res, next) => {
+  console.log('Tentative de connexion avec:', { email: req.body.email });
+  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Erreurs de validation:', errors.array());
     return next(new ErrorResponse(errors.array()[0].msg, 400));
   }
 
@@ -117,26 +120,31 @@ exports.login = asyncHandler(async (req, res, next) => {
 
   // Vérifier si l'email et le mot de passe sont fournis
   if (!email || !password) {
+    console.log('Email ou mot de passe manquant');
     return next(new ErrorResponse('Veuillez fournir un email et un mot de passe', 400));
   }
 
   // Vérifier si l'utilisateur existe
   const user = await User.findOne({ email }).select('+password');
   if (!user) {
+    console.log('Utilisateur non trouvé:', email);
     return next(new ErrorResponse('Identifiants invalides', 401));
   }
 
   // Vérifier si le mot de passe correspond
   const isMatch = await user.matchPassword(password);
   if (!isMatch) {
+    console.log('Mot de passe incorrect pour:', email);
     return next(new ErrorResponse('Identifiants invalides', 401));
   }
 
   // Vérifier si l'email est confirmé
   if (!user.isEmailConfirmed) {
+    console.log('Email non confirmé pour:', email);
     return next(new ErrorResponse('Veuillez confirmer votre email avant de vous connecter', 401));
   }
 
+  console.log('Connexion réussie pour:', email);
   sendTokenResponse(user, 200, res);
 });
 

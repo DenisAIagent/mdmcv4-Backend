@@ -57,6 +57,16 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// Route de base pour vérifier que le serveur fonctionne
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'API MDMC Music Ads est en ligne',
+    version: '1.0.0',
+    environment: process.env.NODE_ENV
+  });
+});
+
 // Routes
 app.use('/api/v1/auth', require('./routes/auth.routes'));
 app.use('/api/v1/smartlinks', require('./routes/smartLinkRoutes'));
