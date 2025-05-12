@@ -32,7 +32,12 @@ app.use(helmet({
 
 // Configuration CORS simplifiée
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5174',
+  origin: [
+    process.env.CORS_ORIGIN,
+    'http://localhost:5174',
+    'https://www.mdmcmusicads.com',
+    'https://mdmcmusicads.com'
+  ].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
