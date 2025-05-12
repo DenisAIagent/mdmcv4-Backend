@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -25,49 +26,28 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Middleware de sécurité
-app.use(helmet());
-
-// Configuration CORS dynamique
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'https://www.mdmcmusicads.com',
-  'https://mdmcmusicads.com',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174'
-];
-
+app.use(helmet({
+  contentSecurityPolicy: false // Désactiver temporairement pour le développement
+}));
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Autorise Postman, curl, etc.
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: [
+    process.env.FRONTEND_URL,
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-
-// Support des requêtes pré-vol (preflight)
-app.options('*', cors());
 
 // Middleware de logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Route de base pour vérifier que le serveur fonctionne
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API MDMC Music Ads est en ligne',
-    version: '1.0.0',
-    environment: process.env.NODE_ENV
-  });
-});
-
-// Routes
+// Routes API
 app.use('/api/v1/auth', require('./routes/auth.routes'));
 app.use('/api/v1/smartlinks', require('./routes/smartLinkRoutes'));
 app.use('/api/v1/artists', require('./routes/artists.routes'));
@@ -83,12 +63,17 @@ app.use('/api/v1/admin/stats', require('./routes/adminStats'));
 // Middleware de gestion d'erreurs
 app.use(errorHandler);
 
-// Gestion des routes non trouvées
-app.use((req, res) => {
+// Gestion des routes non trouvées pour l'API
+app.use('/api/*', (req, res) => {
   res.status(404).json({
     success: false,
-    error: 'Route non trouvée'
+    error: 'Route API non trouvée'
   });
+});
+
+// Pour toutes les autres routes, renvoyer l'application React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 // Définir le port
