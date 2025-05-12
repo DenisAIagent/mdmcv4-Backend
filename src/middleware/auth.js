@@ -44,6 +44,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
+    console.log('Erreur de vérification du token:', err);
     if (err.name === 'TokenExpiredError') {
       return next(new ErrorResponse('Token expiré', 401));
     }
@@ -57,10 +58,11 @@ exports.protect = asyncHandler(async (req, res, next) => {
  */
 exports.authorize = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    console.log('Vérification du rôle:', { userRole: req.user.role, allowedRoles: roles });
+    if (!req.user || !roles.includes(req.user.role)) {
       return next(
         new ErrorResponse(
-          `Le rôle ${req.user.role} n'est pas autorisé à accéder à cette route`,
+          `Le rôle ${req.user ? req.user.role : 'non défini'} n'est pas autorisé à accéder à cette route`,
           403
         )
       );

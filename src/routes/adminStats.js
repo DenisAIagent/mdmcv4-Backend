@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const SmartLink = require('../models/SmartLink');
 const Click = require('../models/Click');
+const { protect, authorize } = require('../middleware/auth');
+
+// Protéger toutes les routes admin
+router.use(protect);
+router.use(authorize('admin'));
 
 router.get('/stats', async (req, res) => {
   try {
@@ -28,18 +33,25 @@ router.get('/stats', async (req, res) => {
     const ctrTrend = '+0.5% cette semaine';
 
     res.json({
-      totalSmartLinks,
-      totalClicks,
-      clicksByPlatform,
-      conversion,
-      ctr,
-      smartLinksTrend,
-      clicksTrend,
-      conversionTrend,
-      ctrTrend
+      success: true,
+      data: {
+        totalSmartLinks,
+        totalClicks,
+        clicksByPlatform,
+        conversion,
+        ctr,
+        smartLinksTrend,
+        clicksTrend,
+        conversionTrend,
+        ctrTrend
+      }
     });
   } catch (err) {
-    res.status(500).json({ error: 'Erreur serveur' });
+    console.error('Erreur admin stats:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Erreur serveur' 
+    });
   }
 });
 
