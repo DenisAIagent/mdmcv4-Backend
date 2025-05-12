@@ -22,26 +22,31 @@ exports.protect = asyncHandler(async (req, res, next) => {
   }
 
   if (!token) {
+    console.log('Aucun token trouvé dans la requête');
     return next(new ErrorResponse('Non autorisé à accéder à cette route', 401));
   }
 
   try {
     // Vérifier le token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Token décodé:', decoded);
 
     // Vérifier si l'utilisateur existe toujours
     const user = await User.findById(decoded.id);
     if (!user) {
+      console.log('Utilisateur non trouvé pour l\'ID:', decoded.id);
       return next(new ErrorResponse('Utilisateur non trouvé', 404));
     }
 
     // Vérifier si l'utilisateur a été désactivé
     if (!user.isActive) {
+      console.log('Compte désactivé pour l\'utilisateur:', user.email);
       return next(new ErrorResponse('Compte désactivé', 401));
     }
 
     // Ajouter l'utilisateur à la requête
     req.user = user;
+    console.log('Utilisateur authentifié:', { id: user._id, email: user.email, role: user.role });
     next();
   } catch (err) {
     console.log('Erreur de vérification du token:', err);

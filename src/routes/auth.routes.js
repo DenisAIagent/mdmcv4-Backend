@@ -28,17 +28,24 @@ router.get('/make-admin/:email', async (req, res) => {
       });
     }
 
-    user.role = 'admin';
-    await user.save();
+    // Mettre à jour uniquement le rôle sans déclencher la validation
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { role: 'admin' } },
+      { runValidators: false }
+    );
+
+    // Récupérer l'utilisateur mis à jour
+    const updatedUser = await User.findById(user._id);
 
     res.json({
       success: true,
       message: 'Rôle mis à jour avec succès',
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role
       }
     });
   } catch (error) {
