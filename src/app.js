@@ -30,23 +30,9 @@ app.use(helmet({
   contentSecurityPolicy: false // Désactiver temporairement pour le développement
 }));
 
-// Configuration CORS dynamique
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'https://www.mdmcmusicads.com',
-  'https://mdmcmusicads.com',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174'
-];
-
+// Configuration CORS simplifiée
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Autorise Postman, curl, etc.
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5174',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -78,6 +64,7 @@ app.use(errorHandler);
 
 // Gestion des routes non trouvées pour l'API
 app.use('/api/*', (req, res) => {
+  console.log('Route API non trouvée:', req.originalUrl);
   res.status(404).json({
     success: false,
     error: 'Route API non trouvée'
@@ -86,15 +73,13 @@ app.use('/api/*', (req, res) => {
 
 // Route spécifique pour /admin
 app.get('/admin', (req, res) => {
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
-  res.redirect(`${frontendUrl}/admin`);
+  res.redirect(process.env.FRONTEND_URL || 'http://localhost:5174/admin');
 });
 
 // Pour toutes les autres routes, rediriger vers le frontend
 app.get('*', (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
-  const redirectUrl = new URL(req.path, frontendUrl).toString();
-  res.redirect(redirectUrl);
+  res.redirect(frontendUrl);
 });
 
 // Définir le port
