@@ -29,18 +29,31 @@ app.use(cookieParser());
 app.use(helmet({
   contentSecurityPolicy: false // Désactiver temporairement pour le développement
 }));
+
+// Configuration CORS dynamique
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'https://www.mdmcmusicads.com',
+  'https://mdmcmusicads.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174'
+];
+
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL,
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174'
-  ],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // Autorise Postman, curl, etc.
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Support des requêtes pré-vol (preflight)
+app.options('*', cors());
 
 // Middleware de logging
 if (process.env.NODE_ENV === 'development') {
@@ -71,9 +84,11 @@ app.use('/api/*', (req, res) => {
   });
 });
 
-// Pour toutes les autres routes, renvoyer l'application React
+// Pour toutes les autres routes, rediriger vers le frontend
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
+  const redirectUrl = new URL(req.path, frontendUrl).toString();
+  res.redirect(redirectUrl);
 });
 
 // Définir le port
