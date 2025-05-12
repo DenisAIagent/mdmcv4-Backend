@@ -138,10 +138,13 @@ exports.login = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Identifiants invalides', 401));
   }
 
-  // Vérifier si l'email est confirmé
+  // Désactiver temporairement la vérification d'email
   if (!user.isEmailConfirmed) {
     console.log('Email non confirmé pour:', email);
-    return next(new ErrorResponse('Veuillez confirmer votre email avant de vous connecter', 401));
+    // Mettre à jour l'utilisateur pour marquer son email comme confirmé
+    user.isEmailConfirmed = true;
+    await user.save({ validateBeforeSave: false });
+    console.log('Email marqué comme confirmé pour:', email);
   }
 
   console.log('Connexion réussie pour:', email);
