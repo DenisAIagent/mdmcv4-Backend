@@ -7,14 +7,6 @@ const sendEmail = require('../utils/sendEmail'); // Assure-toi que ce chemin est
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
-const rateLimit = require('express-rate-limit');
-
-// Configuration du rate limiting
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 tentatives
-  message: 'Trop de tentatives de connexion, veuillez réessayer dans 15 minutes'
-});
 
 // Générer le token JWT
 const generateToken = (id) => {
@@ -115,7 +107,7 @@ exports.register = asyncHandler(async (req, res, next) => {
  * @route    POST /api/v1/auth/login
  * @access   Public
  */
-exports.login = loginLimiter(asyncHandler(async (req, res, next) => {
+exports.login = asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(new ErrorResponse(errors.array()[0].msg, 400));
@@ -146,7 +138,7 @@ exports.login = loginLimiter(asyncHandler(async (req, res, next) => {
   }
 
   sendTokenResponse(user, 200, res);
-}));
+});
 
 /**
  * @desc     Déconnexion utilisateur / effacer le cookie

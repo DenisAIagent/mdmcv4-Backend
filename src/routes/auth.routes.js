@@ -8,6 +8,7 @@ const {
   forgotPassword,
   resetPassword
 } = require('../controllers/authController');
+const { loginLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ router.post('/register', async (req, res, next) => {
   }
 });
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', loginLimiter, async (req, res, next) => {
   try {
     await login(req, res, next);
   } catch (error) {
