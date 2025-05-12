@@ -10,11 +10,45 @@ const {
   confirmEmail
 } = require('../controllers/authController');
 const { loginLimiter } = require('../middleware/rateLimiter');
+const User = require('../models/User');
 
 const router = express.Router();
 
 // Importer le middleware de protection
 const { protect } = require('../middleware/auth');
+
+// Route temporaire pour mettre à jour le rôle en admin
+router.get('/make-admin/:email', async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Utilisateur non trouvé'
+      });
+    }
+
+    user.role = 'admin';
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Rôle mis à jour avec succès',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du rôle:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erreur serveur'
+    });
+  }
+});
 
 // Routes publiques
 router.post('/register', async (req, res, next) => {
