@@ -31,13 +31,19 @@ const sendTokenResponse = (user, statusCode, res) => {
     expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    sameSite: 'none',
+    path: '/'
+  };
+
+  const refreshOptions = {
+    ...options,
+    path: '/api/v1/auth/refresh-token'
   };
 
   res
     .status(statusCode)
     .cookie('accessToken', accessToken, options)
-    .cookie('refreshToken', refreshToken, { ...options, path: '/api/v1/auth/refresh-token' })
+    .cookie('refreshToken', refreshToken, refreshOptions)
     .json({
       success: true,
       accessToken,
