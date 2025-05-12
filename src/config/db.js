@@ -1,13 +1,15 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
-  if (!process.env.MONGO_URI) {
-    console.error('MONGO_URI n\'est pas défini dans les variables d\'environnement');
+  const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  
+  if (!mongoUri) {
+    console.error('MONGO_URI ou MONGODB_URI n\'est pas défini dans les variables d\'environnement');
     process.exit(1);
   }
 
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
+    const conn = await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
