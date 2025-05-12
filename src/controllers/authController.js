@@ -108,47 +108,63 @@ exports.register = asyncHandler(async (req, res, next) => {
  * @access   Public
  */
 exports.login = asyncHandler(async (req, res, next) => {
-  console.log('Tentative de connexion avec:', { email: req.body.email });
-  
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    console.log('Erreurs de validation:', errors.array());
-    return next(new ErrorResponse(errors.array()[0].msg, 400));
-  }
-
   const { email, password } = req.body;
+
+  console.log('Tentative de connexion avec:', { email });
 
   // Vérifier si l'email et le mot de passe sont fournis
   if (!email || !password) {
-    console.log('Email ou mot de passe manquant');
     return next(new ErrorResponse('Veuillez fournir un email et un mot de passe', 400));
   }
 
   // Vérifier si l'utilisateur existe
   const user = await User.findOne({ email }).select('+password');
+
   if (!user) {
-    console.log('Utilisateur non trouvé:', email);
     return next(new ErrorResponse('Identifiants invalides', 401));
   }
 
   // Vérifier si le mot de passe correspond
   const isMatch = await user.matchPassword(password);
+
   if (!isMatch) {
-    console.log('Mot de passe incorrect pour:', email);
     return next(new ErrorResponse('Identifiants invalides', 401));
   }
 
-  // Désactiver temporairement la vérification d'email
-  if (!user.isEmailConfirmed) {
-    console.log('Email non confirmé pour:', email);
-    // Mettre à jour l'utilisateur pour marquer son email comme confirmé
-    user.isEmailConfirmed = true;
-    await user.save({ validateBeforeSave: false });
-    console.log('Email marqué comme confirmé pour:', email);
+  // Vérifier si l'utilisateur est actif
+  if (!user.isActive) {
+    return next(new ErrorResponse('Compte désactivé', 401));
   }
 
+  // Générer le token JWT
+  const token = user.getSignedJwtToken();
+  console.log('Token généré:', token);
+
+  // Configurer les options du cookie
+  const options = {
+    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  };
+
+  // Envoyer la réponse avec le token dans le cookie et le header
+  res
+    .status(200)
+    .cookie('accessToken', token, options)
+    .header('Authorization', `Bearer ${token}`)
+    .json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
   console.log('Connexion réussie pour:', email);
-  sendTokenResponse(user, 200, res);
 });
 
 /**
