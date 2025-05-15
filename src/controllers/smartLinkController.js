@@ -314,8 +314,6 @@ exports.logPlatformClick = asyncHandler(async (req, res, next) => {
 });
 
 exports.fetchPlatformLinks = asyncHandler(async (req, res, next) => {
-  console.log("Backend: /fetch-platform-links a été appelé."); // Route pour récupérer les liens de plateformes à partir d'un ISRC, UPC ou URL source
-router.post("/fetch-platform-links", protect, authorize("admin"), async (req, res, next) => {
   console.log("Backend: /fetch-platform-links a été appelé.");
   
   try {
