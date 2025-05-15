@@ -7,8 +7,7 @@ const slugify = require("slugify");
 const { validationResult } = require("express-validator");
 const NodeCache = require("node-cache");
 const mongoose = require("mongoose");
-const axios // Assurez-vous qu_axios est installé et importé
-  = require("axios");
+const axios = require("axios");
 
 // Cache pour les requêtes fréquentes (TTL: 5 minutes)
 const cache = new NodeCache({ stdTTL: 300 });
@@ -53,24 +52,16 @@ const generateUniqueTrackSlug = async (
   return slug;
 };
 
-/**
- * @desc    Créer un nouveau SmartLink
- * @route   POST /api/v1/smartlinks
- * @access  Private (Admin)
- */
 exports.createSmartLink = asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(new ErrorResponse(errors.array()[0].msg, 400));
   }
-
   const { artistId, trackTitle, slug: proposedSlugByUser, platformLinks, ...otherData } = req.body;
-
   const artist = await Artist.findById(artistId);
   if (!artist) {
     return next(new ErrorResponse(`Artiste non trouvé avec l_ID ${artistId}`, 404));
   }
-
   if (platformLinks && Array.isArray(platformLinks)) {
     for (const link of platformLinks) {
       if (!link.platform || !link.url) {
@@ -83,9 +74,7 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
       }
     }
   }
-
   const finalSlug = await generateUniqueTrackSlug(trackTitle, artistId, proposedSlugByUser);
-
   const smartLinkData = {
     ...otherData,
     artistId,
@@ -95,116 +84,83 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
     createdBy: req.user.id,
     updatedBy: req.user.id,
   };
-
   const smartLink = await SmartLink.create(smartLinkData);
-
   cache.del(`artist_${artistId}_smartlinks`);
-
   res.status(201).json({
     success: true,
     data: smartLink,
   });
 });
 
-/**
- * @desc    Récupérer tous les SmartLinks
- * @route   GET /api/v1/smartlinks
- * @access  Private (Admin)
- */
 exports.getAllSmartLinks = asyncHandler(async (req, res, next) => {
   const cacheKey = `smartlinks_${JSON.stringify(req.query)}`;
   const cachedData = cache.get(cacheKey);
-
   if (cachedData) {
     return res.status(200).json(cachedData);
   }
-
   const reqQuery = { ...req.query };
   const removeFields = ["select", "sort", "page", "limit", "populate"];
   removeFields.forEach((param) => delete reqQuery[param]);
-
   if (reqQuery.artistId && !mongoose.Types.ObjectId.isValid(reqQuery.artistId)) {
     return next(new ErrorResponse("ID d_artiste invalide", 400));
   }
-
   let queryStr = JSON.stringify(reqQuery);
   queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in|regex|options)\b/g, (match) => `$${match}`);
-
   let query = SmartLink.find(JSON.parse(queryStr));
-
   query = query.populate({
     path: "artistId",
     select: "name slug artistImageUrl",
   });
-
   if (req.query.select) {
     const fields = req.query.select.split(",").join(" ");
     query = query.select(fields);
   }
-
   if (req.query.sort) {
     const sortBy = req.query.sort.split(",").join(" ");
     query = query.sort(sortBy);
   } else {
     query = query.sort("-createdAt");
   }
-
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 25;
   const maxLimit = 100;
   const finalLimit = Math.min(limit, maxLimit);
-
   const startIndex = (page - 1) * finalLimit;
   const endIndex = page * finalLimit;
   const total = await SmartLink.countDocuments(JSON.parse(queryStr));
-
   query = query.skip(startIndex).limit(finalLimit);
-
   const smartLinks = await query;
-
   const pagination = {
     page,
     limit: finalLimit,
     totalPages: Math.ceil(total / finalLimit),
     totalItems: total,
   };
-
   if (endIndex < total) {
     pagination.next = { page: page + 1, limit: finalLimit };
   }
   if (startIndex > 0) {
     pagination.prev = { page: page - 1, limit: finalLimit };
   }
-
   const response = {
     success: true,
     count: smartLinks.length,
     pagination,
     data: smartLinks,
   };
-
   cache.set(cacheKey, response);
-
   res.status(200).json(response);
 });
 
-/**
- * @desc    Récupérer les SmartLinks d_un artiste spécifique par son slug
- * @route   GET /api/v1/artists/:artistSlug/smartlinks
- * @access  Public or Private (Admin)
- */
 exports.getSmartLinksByArtistSlug = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findOne({ slug: req.params.artistSlug });
-
   if (!artist) {
     return next(new ErrorResponse(`Artiste non trouvé avec le slug ${req.params.artistSlug}`, 404));
   }
-
   const smartLinks = await SmartLink.find({ artistId: artist._id }).sort({
     releaseDate: -1,
     createdAt: -1,
   });
-
   res.status(200).json({
     success: true,
     count: smartLinks.length,
@@ -219,71 +175,48 @@ exports.getSmartLinksByArtistSlug = asyncHandler(async (req, res, next) => {
   });
 });
 
-/**
- * @desc    Récupérer un SmartLink spécifique par les slugs artiste et track
- * @route   GET /api/v1/smartlinks/details/:artistSlug/:trackSlug
- * @access  Public or Private (Admin)
- */
 exports.getSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
   const { artistSlug, trackSlug } = req.params;
-
   const artist = await Artist.findOne({ slug: artistSlug });
   if (!artist) {
     return next(new ErrorResponse(`Artiste non trouvé avec le slug ${artistSlug}`, 404));
   }
-
   const smartLink = await SmartLink.findOne({
     artistId: artist._id,
-    trackSlug: trackSlug, // Assurez-vous que ce champ existe et est utilisé
+    trackSlug: trackSlug, 
   }).populate({
     path: "artistId",
     select: "name slug artistImageUrl bio",
   });
-
   if (!smartLink) {
     return next(new ErrorResponse(`SmartLink non trouvé avec le slug ${trackSlug} pour l_artiste ${artistSlug}`, 404));
   }
-
   res.status(200).json({
     success: true,
     data: smartLink,
   });
 });
 
-/**
- * @desc    Récupérer un SmartLink par son ID
- * @route   GET /api/v1/smartlinks/:id
- * @access  Private (Admin)
- */
 exports.getSmartLinkById = asyncHandler(async (req, res, next) => {
   const smartLink = await SmartLink.findById(req.params.id).populate({
     path: "artistId",
     select: "name slug artistImageUrl",
   });
-
   if (!smartLink) {
     return next(new ErrorResponse(`SmartLink non trouvé avec l_ID ${req.params.id}`, 404));
   }
-
   res.status(200).json({
     success: true,
     data: smartLink,
   });
 });
 
-/**
- * @desc    Mettre à jour un SmartLink
- * @route   PUT /api/v1/smartlinks/:id
- * @access  Private (Admin)
- */
 exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
   const { trackTitle, slug: proposedSlugByUser, platformLinks, ...otherData } = req.body;
-
   let smartLink = await SmartLink.findById(req.params.id);
   if (!smartLink) {
     return next(new ErrorResponse(`SmartLink non trouvé avec l_ID ${req.params.id}`, 404));
   }
-
   if (platformLinks && Array.isArray(platformLinks)) {
     for (const link of platformLinks) {
       if (!link.platform || !link.url) {
@@ -296,7 +229,6 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
       }
     }
   }
-
   if (trackTitle && trackTitle !== smartLink.trackTitle) {
     otherData.slug = await generateUniqueTrackSlug(
       trackTitle,
@@ -305,7 +237,6 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
       req.params.id
     );
   }
-
   smartLink = await SmartLink.findByIdAndUpdate(
     req.params.id,
     {
@@ -322,51 +253,34 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
     path: "artistId",
     select: "name slug artistImageUrl",
   });
-
   cache.del(`artist_${smartLink.artistId}_smartlinks`);
   cache.del(`smartlinks_${JSON.stringify(req.query)}`);
-
   res.status(200).json({
     success: true,
     data: smartLink,
   });
 });
 
-/**
- * @desc    Supprimer un SmartLink
- * @route   DELETE /api/v1/smartlinks/:id
- * @access  Private (Admin)
- */
 exports.deleteSmartLinkById = asyncHandler(async (req, res, next) => {
   const smartLink = await SmartLink.findById(req.params.id);
   if (!smartLink) {
     return next(new ErrorResponse(`SmartLink non trouvé avec l_ID ${req.params.id}`, 404));
   }
-
   await smartLink.deleteOne();
-
   cache.del(`artist_${smartLink.artistId}_smartlinks`);
   cache.del(`smartlinks_${JSON.stringify(req.query)}`);
-
   res.status(200).json({
     success: true,
     data: {},
   });
 });
 
-/**
- * @desc    Récupérer un SmartLink public par les slugs d_artiste et de morceau
- * @route   GET /api/v1/smartlinks/public/:artistSlug/:trackSlug
- * @access  Public
- */
 exports.getPublicSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
   const { artistSlug, trackSlug } = req.params;
-
   const artist = await Artist.findOne({ slug: artistSlug });
   if (!artist) {
     return next(new ErrorResponse(`Artiste non trouvé avec le slug ${artistSlug}`, 404));
   }
-
   const smartLink = await SmartLink.findOne({
     artistId: artist._id,
     slug: trackSlug,
@@ -375,31 +289,22 @@ exports.getPublicSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
     path: "artistId",
     select: "name slug artistImageUrl",
   });
-
   if (!smartLink) {
     return next(new ErrorResponse(`SmartLink non trouvé pour l_artiste ${artistSlug} et le morceau ${trackSlug}`, 404));
   }
-
   res.status(200).json({
     success: true,
     data: smartLink,
   });
 });
 
-/**
- * @desc    Logger un clic sur une plateforme
- * @route   POST /api/v1/smartlinks/:id/log-platform-click
- * @access  Public
- */
 exports.logPlatformClick = asyncHandler(async (req, res, next) => {
   const smartLink = await SmartLink.findById(req.params.id);
   if (!smartLink) {
     return next(new ErrorResponse(`SmartLink non trouvé avec l_ID ${req.params.id}`, 404));
   }
-
   smartLink.platformClickCount = (smartLink.platformClickCount || 0) + 1;
   await smartLink.save();
-
   res.status(200).json({
     success: true,
     data: {
@@ -408,23 +313,26 @@ exports.logPlatformClick = asyncHandler(async (req, res, next) => {
   });
 });
 
-/**
- * @desc    Récupérer les liens des plateformes via Odesli/Songlink
- * @route   POST /api/v1/smartlinks/fetch-platform-links
- * @access  Private (Admin)
- */
 exports.fetchPlatformLinks = asyncHandler(async (req, res, next) => {
-  const { sourceUrl } = req.body; // sourceUrl peut être un ISRC, UPC ou une URL de plateforme
+  console.log("Backend: /fetch-platform-links a été appelé."); // Log pour voir si la route est atteinte
+  console.log("Backend: Contenu de req.body:", req.body); // Log pour voir le corps de la requête
 
-  if (!sourceUrl) {
-    return next(new ErrorResponse("Veuillez fournir une URL source, un ISRC ou un UPC", 400));
+  const { sourceUrl } = req.body;
+  console.log(`Backend: sourceUrl reçue: "${sourceUrl}"`); // Log pour voir la valeur de sourceUrl
+
+  if (!sourceUrl || String(sourceUrl).trim() === "") {
+    console.log("Backend: sourceUrl est manquante ou vide.");
+    return next(new ErrorResponse("Veuillez fournir une URL source, un ISRC ou un UPC valide", 400));
   }
 
   try {
-    const odesliApiUrl = `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(sourceUrl)}`;
-    const odesliResponse = await axios.get(odesliApiUrl);
+    const odesliApiUrl = `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(sourceUrl.trim())}`;
+    console.log(`Backend: Appel à Odesli avec URL: ${odesliApiUrl}`);
+    
+    const odesliResponse = await axios.get(odesliApiUrl, { timeout: 10000 }); // Ajout d_un timeout
 
     if (odesliResponse.status !== 200 || !odesliResponse.data) {
+      console.log("Backend: Réponse invalide ou échec de la récupération depuis Odesli/Songlink", odesliResponse.status);
       return next(new ErrorResponse("Impossible de récupérer les liens depuis Odesli/Songlink", 500));
     }
 
@@ -444,9 +352,8 @@ exports.fetchPlatformLinks = asyncHandler(async (req, res, next) => {
       spotify: "Spotify",
       appleMusic: "Apple Music",
       youtube: "YouTube",
-      youtubeMusic: "YouTube Music", // Odesli peut retourner les deux
+      youtubeMusic: "YouTube Music",
       deezer: "Deezer",
-      // Ajoutez d_autres plateformes si nécessaire
     };
 
     for (const odesliPlatformKey in linksByPlatform) {
@@ -454,35 +361,47 @@ exports.fetchPlatformLinks = asyncHandler(async (req, res, next) => {
         relevantPlatforms[platformMapping[odesliPlatformKey]] = linksByPlatform[odesliPlatformKey].url;
       }
     }
-    // Assurer la présence de YouTube Music si YouTube est là et YTM manque
     if (relevantPlatforms["YouTube"] && !relevantPlatforms["YouTube Music"]) {
         relevantPlatforms["YouTube Music"] = relevantPlatforms["YouTube"];
     }
 
     if (Object.keys(relevantPlatforms).length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Aucun lien trouvé pour les plateformes principales (Spotify, Apple Music, Deezer, YouTube/YouTube Music) via Odesli/Songlink."
+      console.log("Backend: Aucun lien pertinent trouvé via Odesli.");
+      return res.status(200).json({
+        success: true, // On retourne succès mais avec un message indiquant qu_aucun lien n_a été trouvé
+        message: "Aucun lien trouvé pour les plateformes principales (Spotify, Apple Music, Deezer, YouTube/YouTube Music) via Odesli/Songlink.",
+        data: { title, artistName, thumbnailUrl, links: {} }
       });
     }
-
+    console.log("Backend: Liens trouvés et retournés au frontend:", relevantPlatforms);
     res.status(200).json({
       success: true,
       data: {
         title,
         artistName,
         thumbnailUrl,
-        links: relevantPlatforms, // Renvoie un objet { "Spotify": "url", "Apple Music": "url", ... }
+        links: relevantPlatforms,
       },
     });
 
   } catch (error) {
-    console.error("Erreur lors de l_appel à l_API Odesli/Songlink:", error.message);
-    // Si Odesli renvoie une erreur spécifique (ex: 404 si l_URL source n_est pas trouvée), on pourrait la propager
-    if (error.response && error.response.status === 404) {
-        return next(new ErrorResponse("La ressource n_a pas été trouvée sur Odesli/Songlink.", 404));
+    console.error("Backend: Erreur détaillée lors de l_appel à l_API Odesli/Songlink:", error);
+    if (error.response) {
+      // Erreur venant de l_API Odesli (ex: 400, 404, 5xx)
+      console.error("Backend: Erreur Odesli - Statut:", error.response.status);
+      console.error("Backend: Erreur Odesli - Données:", error.response.data);
+      const message = error.response.data?.message || `Erreur Odesli (${error.response.status}): Impossible de traiter la source fournie.`
+      return next(new ErrorResponse(message, error.response.status));
+    } else if (error.request) {
+      // La requête a été faite mais aucune réponse n_a été reçue (ex: timeout)
+      console.error("Backend: Aucune réponse reçue d_Odesli (timeout?)");
+      return next(new ErrorResponse("Aucune réponse reçue du service de recherche de liens (Odesli). Veuillez réessayer.", 504)); // Gateway Timeout
+    } else {
+      // Erreur de configuration de la requête ou autre
+      console.error("Backend: Erreur de configuration de la requête vers Odesli ou autre erreur interne.");
+      return next(new ErrorResponse("Erreur interne lors de la communication avec Odesli/Songlink", 500));
     }
-    return next(new ErrorResponse("Erreur interne lors de la communication avec Odesli/Songlink", 500));
   }
 });
+
 
