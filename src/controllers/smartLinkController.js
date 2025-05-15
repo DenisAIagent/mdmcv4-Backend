@@ -314,40 +314,59 @@ exports.logPlatformClick = asyncHandler(async (req, res, next) => {
 });
 
 exports.fetchPlatformLinks = asyncHandler(async (req, res, next) => {
-  console.log("Backend: /fetch-platform-links a été appelé."); // Log pour voir si la route est atteinte
-  console.log("Backend: Contenu de req.body:", req.body); // Log pour voir le corps de la requête
-
-  const { sourceUrl } = req.body;
-  console.log(`Backend: sourceUrl reçue: "${sourceUrl}"`); // Log pour voir la valeur de sourceUrl
-
-  if (!sourceUrl || String(sourceUrl).trim() === "") {
-    console.log("Backend: sourceUrl est manquante ou vide.");
-    return next(new ErrorResponse("Veuillez fournir une URL source, un ISRC ou un UPC valide", 400));
-  }
-
+  console.log("Backend: /fetch-platform-links a été appelé."); // Route pour récupérer les liens de plateformes à partir d'un ISRC, UPC ou URL source
+router.post("/fetch-platform-links", protect, authorize("admin"), async (req, res, next) => {
+  console.log("Backend: /fetch-platform-links a été appelé.");
+  
   try {
-    const odesliApiUrl = `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(sourceUrl.trim())}`;
-    console.log(`Backend: Appel à Odesli avec URL: ${odesliApiUrl}`);
-    
-    const odesliResponse = await axios.get(odesliApiUrl, { timeout: 10000 }); // Ajout d_un timeout
+    const { sourceUrl } = req.body;
+    console.log("Backend: Contenu de req.body:", req.body);
+    console.log("Backend: sourceUrl reçue:", JSON.stringify(sourceUrl));
 
-    if (odesliResponse.status !== 200 || !odesliResponse.data) {
-      console.log("Backend: Réponse invalide ou échec de la récupération depuis Odesli/Songlink", odesliResponse.status);
-      return next(new ErrorResponse("Impossible de récupérer les liens depuis Odesli/Songlink", 500));
+    if (!sourceUrl || String(sourceUrl).trim() === "") {
+      return next(new ErrorResponse("L_URL source, ISRC ou UPC est requis", 400));
     }
 
-    const { linksByPlatform, entitiesByUniqueId, entityUniqueId } = odesliResponse.data;
-    const relevantPlatforms = {};
+    // Nettoyage et préparation de l'URL pour l'API Odesli
+    let cleanSourceUrl = sourceUrl.trim();
+    
+    // Vérifier si l'URL contient des paramètres de requête (comme ?si=...)
+    if (cleanSourceUrl.includes('?') && cleanSourceUrl.includes('spotify.com')) {
+      // Pour Spotify, on peut supprimer les paramètres de requête
+      cleanSourceUrl = cleanSourceUrl.split('?')[0];
+      console.log("Backend: URL Spotify nettoyée des paramètres:", cleanSourceUrl);
+    }
+    
+    // Construction de l'URL pour l'API Odesli
+    const odesliUrl = `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(cleanSourceUrl)}`;
+    console.log("Backend: Appel à Odesli avec URL:", odesliUrl);
+
+    // Appel à l'API Odesli
+    const odesliResponse = await axios.get(odesliUrl);
+    const odesliData = odesliResponse.data;
+
+    // Extraction des données pertinentes
     let title = "";
     let artistName = "";
     let thumbnailUrl = "";
+    const relevantPlatforms = {};
 
-    if (entityUniqueId && entitiesByUniqueId && entitiesByUniqueId[entityUniqueId]) {
-        title = entitiesByUniqueId[entityUniqueId].title || "";
-        artistName = entitiesByUniqueId[entityUniqueId].artistName || "";
-        thumbnailUrl = entitiesByUniqueId[entityUniqueId].thumbnailUrl || "";
+    // Récupération des métadonnées de la chanson
+    if (odesliData.entitiesByUniqueId) {
+      const entities = Object.values(odesliData.entitiesByUniqueId);
+      if (entities.length > 0) {
+        const firstEntity = entities[0];
+        title = firstEntity.title || "";
+        artistName = firstEntity.artistName || "";
+        thumbnailUrl = firstEntity.thumbnailUrl || "";
+      }
     }
 
+    // Récupération des liens par plateforme
+    const linksByPlatform = odesliData.linksByPlatform || {};
+    console.log("Backend: Structure complète de linksByPlatform:", JSON.stringify(linksByPlatform, null, 2));
+    
+    // Mapping des clés de plateforme Odesli vers nos noms de plateformes
     const platformMapping = {
       spotify: "Spotify",
       appleMusic: "Apple Music",
@@ -357,10 +376,14 @@ exports.fetchPlatformLinks = asyncHandler(async (req, res, next) => {
     };
 
     for (const odesliPlatformKey in linksByPlatform) {
+      console.log(`Backend: Traitement de la plateforme ${odesliPlatformKey}:`, linksByPlatform[odesliPlatformKey]);
       if (platformMapping[odesliPlatformKey]) {
-        relevantPlatforms[platformMapping[odesliPlatformKey]] = linksByPlatform[odesliPlatformKey].url;
+        const platformUrl = linksByPlatform[odesliPlatformKey].url;
+        console.log(`Backend: URL extraite pour ${platformMapping[odesliPlatformKey]}:`, platformUrl);
+        relevantPlatforms[platformMapping[odesliPlatformKey]] = platformUrl;
       }
     }
+    
     if (relevantPlatforms["YouTube"] && !relevantPlatforms["YouTube Music"]) {
         relevantPlatforms["YouTube Music"] = relevantPlatforms["YouTube"];
     }
@@ -403,5 +426,3 @@ exports.fetchPlatformLinks = asyncHandler(async (req, res, next) => {
     }
   }
 });
-
-
