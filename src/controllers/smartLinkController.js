@@ -1,24 +1,32 @@
 // controllers/smartLinkController.js
-const SmartLink = require('../models/SmartLink');
-const Artist = require('../models/Artist');
-const asyncHandler = require('../middleware/asyncHandler');
-const ErrorResponse = require('../utils/errorResponse');
-const slugify = require('slugify');
-const { validationResult } = require('express-validator');
-const NodeCache = require('node-cache');
-const mongoose = require('mongoose');
+const SmartLink = require("../models/SmartLink");
+const Artist = require("../models/Artist");
+const asyncHandler = require("../middleware/asyncHandler");
+const ErrorResponse = require("../utils/errorResponse");
+const slugify = require("slugify");
+const { validationResult } = require("express-validator");
+const NodeCache = require("node-cache");
+const mongoose = require("mongoose");
+const axios // Assurez-vous qu_axios est installé et importé
+  = require("axios");
 
 // Cache pour les requêtes fréquentes (TTL: 5 minutes)
 const cache = new NodeCache({ stdTTL: 300 });
 
 // --- Fonction utilitaire interne pour générer un slug unique ---
-const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null, excludeId = null) => {
-  let baseSlugAttempt = proposedSlug
-    ? slugify(proposedSlug, { lower: true, strict: true, remove: /[*+~.()'"!:@#%$^&={}|[\]\\;\/?]/g })
-    : slugify(baseTitle, { lower: true, strict: true, remove: /[*+~.()'"!:@#%$^&={}|[\]\\;\/?]/g });
+const generateUniqueTrackSlug = async (
+  baseTitle,
+  artistId,
+  proposedSlug = null,
+  excludeId = null
+) => {
+  let baseSlugAttempt =
+    proposedSlug
+      ? slugify(proposedSlug, { lower: true, strict: true, remove: /[*+~.()\"!:@#%$^&={}|[\]\\;\/?]/g })
+      : slugify(baseTitle, { lower: true, strict: true, remove: /[*+~.()\"!:@#%$^&={}|[\]\\;\/?]/g });
 
   if (!baseSlugAttempt) {
-    baseSlugAttempt = 'smartlink';
+    baseSlugAttempt = "smartlink";
   }
 
   let slug = baseSlugAttempt;
@@ -39,7 +47,7 @@ const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null,
   }
 
   if (count >= maxAttempts) {
-    throw new Error('Impossible de générer un slug unique après plusieurs tentatives');
+    throw new Error("Impossible de générer un slug unique après plusieurs tentatives");
   }
 
   return slug;
@@ -51,7 +59,6 @@ const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null,
  * @access  Private (Admin)
  */
 exports.createSmartLink = asyncHandler(async (req, res, next) => {
-  // Validation des entrées
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(new ErrorResponse(errors.array()[0].msg, 400));
@@ -59,17 +66,15 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
 
   const { artistId, trackTitle, slug: proposedSlugByUser, platformLinks, ...otherData } = req.body;
 
-  // Vérification de l'artiste
   const artist = await Artist.findById(artistId);
   if (!artist) {
-    return next(new ErrorResponse(`Artiste non trouvé avec l'ID ${artistId}`, 404));
+    return next(new ErrorResponse(`Artiste non trouvé avec l_ID ${artistId}`, 404));
   }
 
-  // Validation des liens de plateformes
   if (platformLinks && Array.isArray(platformLinks)) {
     for (const link of platformLinks) {
       if (!link.platform || !link.url) {
-        return next(new ErrorResponse('Chaque lien de plateforme doit avoir un nom de plateforme et une URL', 400));
+        return next(new ErrorResponse("Chaque lien de plateforme doit avoir un nom de plateforme et une URL", 400));
       }
       try {
         new URL(link.url);
@@ -79,7 +84,6 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // Génération du slug
   const finalSlug = await generateUniqueTrackSlug(trackTitle, artistId, proposedSlugByUser);
 
   const smartLinkData = {
@@ -89,17 +93,16 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
     slug: finalSlug,
     platformLinks: platformLinks || [],
     createdBy: req.user.id,
-    updatedBy: req.user.id
+    updatedBy: req.user.id,
   };
 
   const smartLink = await SmartLink.create(smartLinkData);
-  
-  // Invalider le cache
+
   cache.del(`artist_${artistId}_smartlinks`);
-  
+
   res.status(201).json({
     success: true,
-    data: smartLink
+    data: smartLink,
   });
 });
 
@@ -117,45 +120,40 @@ exports.getAllSmartLinks = asyncHandler(async (req, res, next) => {
   }
 
   const reqQuery = { ...req.query };
-  const removeFields = ['select', 'sort', 'page', 'limit', 'populate'];
-  removeFields.forEach(param => delete reqQuery[param]);
+  const removeFields = ["select", "sort", "page", "limit", "populate"];
+  removeFields.forEach((param) => delete reqQuery[param]);
 
-  // Validation des paramètres de requête
   if (reqQuery.artistId && !mongoose.Types.ObjectId.isValid(reqQuery.artistId)) {
-    return next(new ErrorResponse('ID d\'artiste invalide', 400));
+    return next(new ErrorResponse("ID d_artiste invalide", 400));
   }
 
   let queryStr = JSON.stringify(reqQuery);
-  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in|regex|options)\b/g, match => `$${match}`);
+  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in|regex|options)\b/g, (match) => `$${match}`);
 
   let query = SmartLink.find(JSON.parse(queryStr));
 
-  // Population de l'artiste
   query = query.populate({
-    path: 'artistId',
-    select: 'name slug artistImageUrl'
+    path: "artistId",
+    select: "name slug artistImageUrl",
   });
 
-  // Sélection des champs
   if (req.query.select) {
-    const fields = req.query.select.split(',').join(' ');
+    const fields = req.query.select.split(",").join(" ");
     query = query.select(fields);
   }
 
-  // Tri
   if (req.query.sort) {
-    const sortBy = req.query.sort.split(',').join(' ');
+    const sortBy = req.query.sort.split(",").join(" ");
     query = query.sort(sortBy);
   } else {
-    query = query.sort('-createdAt');
+    query = query.sort("-createdAt");
   }
 
-  // Pagination
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 25;
-  const maxLimit = 100; // Limite maximale pour prévenir les abus
+  const maxLimit = 100;
   const finalLimit = Math.min(limit, maxLimit);
-  
+
   const startIndex = (page - 1) * finalLimit;
   const endIndex = page * finalLimit;
   const total = await SmartLink.countDocuments(JSON.parse(queryStr));
@@ -168,7 +166,7 @@ exports.getAllSmartLinks = asyncHandler(async (req, res, next) => {
     page,
     limit: finalLimit,
     totalPages: Math.ceil(total / finalLimit),
-    totalItems: total
+    totalItems: total,
   };
 
   if (endIndex < total) {
@@ -182,42 +180,43 @@ exports.getAllSmartLinks = asyncHandler(async (req, res, next) => {
     success: true,
     count: smartLinks.length,
     pagination,
-    data: smartLinks
+    data: smartLinks,
   };
 
-  // Mise en cache
   cache.set(cacheKey, response);
 
   res.status(200).json(response);
 });
 
 /**
- * @desc    Récupérer les SmartLinks d'un artiste spécifique par son slug
+ * @desc    Récupérer les SmartLinks d_un artiste spécifique par son slug
  * @route   GET /api/v1/artists/:artistSlug/smartlinks
  * @access  Public or Private (Admin)
  */
 exports.getSmartLinksByArtistSlug = asyncHandler(async (req, res, next) => {
-    const artist = await Artist.findOne({ slug: req.params.artistSlug });
+  const artist = await Artist.findOne({ slug: req.params.artistSlug });
 
-    if (!artist) {
-        return next(new ErrorResponse(`Artiste non trouvé avec le slug ${req.params.artistSlug}`, 404));
-    }
+  if (!artist) {
+    return next(new ErrorResponse(`Artiste non trouvé avec le slug ${req.params.artistSlug}`, 404));
+  }
 
-    // Trouver les SmartLinks associés à cet artiste
-    const smartLinks = await SmartLink.find({ artistId: artist._id }).sort({ releaseDate: -1, createdAt: -1 }); // Tri par date de sortie puis création
+  const smartLinks = await SmartLink.find({ artistId: artist._id }).sort({
+    releaseDate: -1,
+    createdAt: -1,
+  });
 
-    res.status(200).json({
-        success: true,
-        count: smartLinks.length,
-        artist: { // Renvoyer aussi quelques infos de l'artiste peut être utile
-            _id: artist._id,
-            name: artist.name,
-            slug: artist.slug,
-            artistImageUrl: artist.artistImageUrl,
-            bio: artist.bio
-        },
-        data: smartLinks
-    });
+  res.status(200).json({
+    success: true,
+    count: smartLinks.length,
+    artist: {
+      _id: artist._id,
+      name: artist.name,
+      slug: artist.slug,
+      artistImageUrl: artist.artistImageUrl,
+      bio: artist.bio,
+    },
+    data: smartLinks,
+  });
 });
 
 /**
@@ -226,36 +225,29 @@ exports.getSmartLinksByArtistSlug = asyncHandler(async (req, res, next) => {
  * @access  Public or Private (Admin)
  */
 exports.getSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
-    const { artistSlug, trackSlug } = req.params;
+  const { artistSlug, trackSlug } = req.params;
 
-    // 1. Trouver l'artiste par son slug
-    const artist = await Artist.findOne({ slug: artistSlug });
-    if (!artist) {
-        return next(new ErrorResponse(`Artiste non trouvé avec le slug ${artistSlug}`, 404));
-    }
+  const artist = await Artist.findOne({ slug: artistSlug });
+  if (!artist) {
+    return next(new ErrorResponse(`Artiste non trouvé avec le slug ${artistSlug}`, 404));
+  }
 
-    // 2. Trouver le SmartLink par artistId et trackSlug
-    const smartLink = await SmartLink.findOne({
-        artistId: artist._id,
-        trackSlug: trackSlug
-    }).populate({ // Peuple l'artiste associé pour avoir ses infos
-        path: 'artistId',
-        select: 'name slug artistImageUrl bio'
-    });
+  const smartLink = await SmartLink.findOne({
+    artistId: artist._id,
+    trackSlug: trackSlug, // Assurez-vous que ce champ existe et est utilisé
+  }).populate({
+    path: "artistId",
+    select: "name slug artistImageUrl bio",
+  });
 
-    if (!smartLink) {
-        return next(new ErrorResponse(`SmartLink non trouvé avec le slug ${trackSlug} pour l'artiste ${artistSlug}`, 404));
-    }
+  if (!smartLink) {
+    return next(new ErrorResponse(`SmartLink non trouvé avec le slug ${trackSlug} pour l_artiste ${artistSlug}`, 404));
+  }
 
-    // Optionnel: Vérifier si le lien est publié si l'accès n'est pas admin
-    // if (!smartLink.isPublished /* && !req.user.isAdmin */ ) {
-    //   return next(new ErrorResponse(`Ce SmartLink n'est pas publié`, 404));
-    // }
-
-    res.status(200).json({
-        success: true,
-        data: smartLink
-    });
+  res.status(200).json({
+    success: true,
+    data: smartLink,
+  });
 });
 
 /**
@@ -264,19 +256,18 @@ exports.getSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
  * @access  Private (Admin)
  */
 exports.getSmartLinkById = asyncHandler(async (req, res, next) => {
-  const smartLink = await SmartLink.findById(req.params.id)
-    .populate({
-      path: 'artistId',
-      select: 'name slug artistImageUrl'
-    });
+  const smartLink = await SmartLink.findById(req.params.id).populate({
+    path: "artistId",
+    select: "name slug artistImageUrl",
+  });
 
   if (!smartLink) {
-    return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${req.params.id}`, 404));
+    return next(new ErrorResponse(`SmartLink non trouvé avec l_ID ${req.params.id}`, 404));
   }
 
   res.status(200).json({
     success: true,
-    data: smartLink
+    data: smartLink,
   });
 });
 
@@ -290,14 +281,13 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
 
   let smartLink = await SmartLink.findById(req.params.id);
   if (!smartLink) {
-    return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${req.params.id}`, 404));
+    return next(new ErrorResponse(`SmartLink non trouvé avec l_ID ${req.params.id}`, 404));
   }
 
-  // Validation des liens de plateformes
   if (platformLinks && Array.isArray(platformLinks)) {
     for (const link of platformLinks) {
       if (!link.platform || !link.url) {
-        return next(new ErrorResponse('Chaque lien de plateforme doit avoir un nom de plateforme et une URL', 400));
+        return next(new ErrorResponse("Chaque lien de plateforme doit avoir un nom de plateforme et une URL", 400));
       }
       try {
         new URL(link.url);
@@ -307,9 +297,13 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // Génération du slug si le titre a changé
   if (trackTitle && trackTitle !== smartLink.trackTitle) {
-    otherData.slug = await generateUniqueTrackSlug(trackTitle, smartLink.artistId, proposedSlugByUser, req.params.id);
+    otherData.slug = await generateUniqueTrackSlug(
+      trackTitle,
+      smartLink.artistId,
+      proposedSlugByUser,
+      req.params.id
+    );
   }
 
   smartLink = await SmartLink.findByIdAndUpdate(
@@ -318,24 +312,23 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
       ...otherData,
       trackTitle: trackTitle || smartLink.trackTitle,
       platformLinks: platformLinks || smartLink.platformLinks,
-      updatedBy: req.user.id
+      updatedBy: req.user.id,
     },
     {
       new: true,
-      runValidators: true
+      runValidators: true,
     }
   ).populate({
-    path: 'artistId',
-    select: 'name slug artistImageUrl'
+    path: "artistId",
+    select: "name slug artistImageUrl",
   });
 
-  // Invalider le cache
   cache.del(`artist_${smartLink.artistId}_smartlinks`);
   cache.del(`smartlinks_${JSON.stringify(req.query)}`);
 
   res.status(200).json({
     success: true,
-    data: smartLink
+    data: smartLink,
   });
 });
 
@@ -347,23 +340,22 @@ exports.updateSmartLinkById = asyncHandler(async (req, res, next) => {
 exports.deleteSmartLinkById = asyncHandler(async (req, res, next) => {
   const smartLink = await SmartLink.findById(req.params.id);
   if (!smartLink) {
-    return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${req.params.id}`, 404));
+    return next(new ErrorResponse(`SmartLink non trouvé avec l_ID ${req.params.id}`, 404));
   }
 
   await smartLink.deleteOne();
 
-  // Invalider le cache
   cache.del(`artist_${smartLink.artistId}_smartlinks`);
   cache.del(`smartlinks_${JSON.stringify(req.query)}`);
 
   res.status(200).json({
     success: true,
-    data: {}
+    data: {},
   });
 });
 
 /**
- * @desc    Récupérer un SmartLink public par les slugs d'artiste et de morceau
+ * @desc    Récupérer un SmartLink public par les slugs d_artiste et de morceau
  * @route   GET /api/v1/smartlinks/public/:artistSlug/:trackSlug
  * @access  Public
  */
@@ -378,19 +370,19 @@ exports.getPublicSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
   const smartLink = await SmartLink.findOne({
     artistId: artist._id,
     slug: trackSlug,
-    isPublished: true
+    isPublished: true,
   }).populate({
-    path: 'artistId',
-    select: 'name slug artistImageUrl'
+    path: "artistId",
+    select: "name slug artistImageUrl",
   });
 
   if (!smartLink) {
-    return next(new ErrorResponse(`SmartLink non trouvé pour l'artiste ${artistSlug} et le morceau ${trackSlug}`, 404));
+    return next(new ErrorResponse(`SmartLink non trouvé pour l_artiste ${artistSlug} et le morceau ${trackSlug}`, 404));
   }
 
   res.status(200).json({
     success: true,
-    data: smartLink
+    data: smartLink,
   });
 });
 
@@ -402,16 +394,95 @@ exports.getPublicSmartLinkBySlugs = asyncHandler(async (req, res, next) => {
 exports.logPlatformClick = asyncHandler(async (req, res, next) => {
   const smartLink = await SmartLink.findById(req.params.id);
   if (!smartLink) {
-    return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${req.params.id}`, 404));
+    return next(new ErrorResponse(`SmartLink non trouvé avec l_ID ${req.params.id}`, 404));
   }
 
-  smartLink.platformClickCount += 1;
+  smartLink.platformClickCount = (smartLink.platformClickCount || 0) + 1;
   await smartLink.save();
 
   res.status(200).json({
     success: true,
     data: {
-      platformClickCount: smartLink.platformClickCount
-    }
+      platformClickCount: smartLink.platformClickCount,
+    },
   });
 });
+
+/**
+ * @desc    Récupérer les liens des plateformes via Odesli/Songlink
+ * @route   POST /api/v1/smartlinks/fetch-platform-links
+ * @access  Private (Admin)
+ */
+exports.fetchPlatformLinks = asyncHandler(async (req, res, next) => {
+  const { sourceUrl } = req.body; // sourceUrl peut être un ISRC, UPC ou une URL de plateforme
+
+  if (!sourceUrl) {
+    return next(new ErrorResponse("Veuillez fournir une URL source, un ISRC ou un UPC", 400));
+  }
+
+  try {
+    const odesliApiUrl = `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(sourceUrl)}`;
+    const odesliResponse = await axios.get(odesliApiUrl);
+
+    if (odesliResponse.status !== 200 || !odesliResponse.data) {
+      return next(new ErrorResponse("Impossible de récupérer les liens depuis Odesli/Songlink", 500));
+    }
+
+    const { linksByPlatform, entitiesByUniqueId, entityUniqueId } = odesliResponse.data;
+    const relevantPlatforms = {};
+    let title = "";
+    let artistName = "";
+    let thumbnailUrl = "";
+
+    if (entityUniqueId && entitiesByUniqueId && entitiesByUniqueId[entityUniqueId]) {
+        title = entitiesByUniqueId[entityUniqueId].title || "";
+        artistName = entitiesByUniqueId[entityUniqueId].artistName || "";
+        thumbnailUrl = entitiesByUniqueId[entityUniqueId].thumbnailUrl || "";
+    }
+
+    const platformMapping = {
+      spotify: "Spotify",
+      appleMusic: "Apple Music",
+      youtube: "YouTube",
+      youtubeMusic: "YouTube Music", // Odesli peut retourner les deux
+      deezer: "Deezer",
+      // Ajoutez d_autres plateformes si nécessaire
+    };
+
+    for (const odesliPlatformKey in linksByPlatform) {
+      if (platformMapping[odesliPlatformKey]) {
+        relevantPlatforms[platformMapping[odesliPlatformKey]] = linksByPlatform[odesliPlatformKey].url;
+      }
+    }
+    // Assurer la présence de YouTube Music si YouTube est là et YTM manque
+    if (relevantPlatforms["YouTube"] && !relevantPlatforms["YouTube Music"]) {
+        relevantPlatforms["YouTube Music"] = relevantPlatforms["YouTube"];
+    }
+
+    if (Object.keys(relevantPlatforms).length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Aucun lien trouvé pour les plateformes principales (Spotify, Apple Music, Deezer, YouTube/YouTube Music) via Odesli/Songlink."
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        title,
+        artistName,
+        thumbnailUrl,
+        links: relevantPlatforms, // Renvoie un objet { "Spotify": "url", "Apple Music": "url", ... }
+      },
+    });
+
+  } catch (error) {
+    console.error("Erreur lors de l_appel à l_API Odesli/Songlink:", error.message);
+    // Si Odesli renvoie une erreur spécifique (ex: 404 si l_URL source n_est pas trouvée), on pourrait la propager
+    if (error.response && error.response.status === 404) {
+        return next(new ErrorResponse("La ressource n_a pas été trouvée sur Odesli/Songlink.", 404));
+    }
+    return next(new ErrorResponse("Erreur interne lors de la communication avec Odesli/Songlink", 500));
+  }
+});
+
