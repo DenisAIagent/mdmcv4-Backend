@@ -1,68 +1,45 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const ArtistSchema = new mongoose.Schema({
+/**
+ * Schéma pour le modèle Artist
+ */
+const ArtistSchema = new Schema({
   name: {
     type: String,
-    required: [true, 'Veuillez ajouter un nom d\'artiste'],
-    trim: true,
-    maxlength: [100, 'Le nom ne peut pas dépasser 100 caractères']
-  },
-  biography: {
-    type: String,
-    maxlength: [2000, 'La biographie ne peut pas dépasser 2000 caractères']
-  },
-  image: {
-    type: String,
-    default: 'default-artist.jpg'
-  },
-  socialLinks: {
-    spotify: {
-      type: String,
-      match: [
-        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
-        'Veuillez utiliser une URL valide'
-      ]
-    },
-    instagram: {
-      type: String,
-      match: [
-        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
-        'Veuillez utiliser une URL valide'
-      ]
-    },
-    twitter: {
-      type: String,
-      match: [
-        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
-        'Veuillez utiliser une URL valide'
-      ]
-    },
-    facebook: {
-      type: String,
-      match: [
-        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
-        'Veuillez utiliser une URL valide'
-      ]
-    },
-    youtube: {
-      type: String,
-      match: [
-        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
-        'Veuillez utiliser une URL valide'
-      ]
-    }
+    required: true,
+    trim: true
   },
   slug: {
     type: String,
-    required: [true, 'Veuillez spécifier un slug'],
+    required: true,
     unique: true,
-    trim: true,
-    maxlength: [100, 'Le slug ne peut pas dépasser 100 caractères']
+    trim: true
   },
-  user: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'User',
-    required: [true, 'Veuillez spécifier un utilisateur']
+  bio: {
+    type: String,
+    default: ''
+  },
+  image: {
+    type: String,
+    default: ''
+  },
+  socialLinks: {
+    instagram: String,
+    twitter: String,
+    facebook: String,
+    youtube: String,
+    spotify: String,
+    appleMusic: String,
+    website: String
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   },
   createdAt: {
     type: Date,
@@ -72,18 +49,10 @@ const ArtistSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+}, {
+  timestamps: true
 });
 
-// Middleware pour mettre à jour le champ updatedAt avant la sauvegarde
-ArtistSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+const Artist = mongoose.model('Artist', ArtistSchema);
 
-// Middleware pour cascade delete les SmartLinks associés à l'artiste
-ArtistSchema.pre('remove', async function(next) {
-  await this.model('SmartLink').deleteMany({ artist: this._id });
-  next();
-});
-
-module.exports = mongoose.model('Artist', ArtistSchema);
+module.exports = Artist;

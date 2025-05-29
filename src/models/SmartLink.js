@@ -1,90 +1,64 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const SmartLinkSchema = new mongoose.Schema({
+/**
+ * Schéma pour le modèle SmartLink
+ */
+const SmartLinkSchema = new Schema({
   title: {
     type: String,
-    required: [true, 'Veuillez ajouter un titre'],
-    trim: true,
-    maxlength: [100, 'Le titre ne peut pas dépasser 100 caractères']
+    required: true,
+    trim: true
   },
   artist: {
-    type: mongoose.Schema.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Artist',
-    required: [true, 'Veuillez spécifier un artiste']
-  },
-  coverImage: {
-    type: String,
-    required: [true, 'Veuillez ajouter une image de couverture']
-  },
-  releaseDate: {
-    type: Date,
-    default: Date.now
-  },
-  platforms: [
-    {
-      name: {
-        type: String,
-        required: [true, 'Veuillez spécifier le nom de la plateforme'],
-        enum: ['Spotify', 'Apple Music', 'Deezer', 'YouTube Music', 'Amazon Music', 'Tidal', 'SoundCloud', 'Bandcamp']
-      },
-      url: {
-        type: String,
-        required: [true, 'Veuillez spécifier l\'URL de la plateforme'],
-        match: [
-          /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
-          'Veuillez utiliser une URL valide'
-        ]
-      },
-      utmSource: {
-        type: String,
-        default: ''
-      },
-      utmMedium: {
-        type: String,
-        default: ''
-      },
-      utmCampaign: {
-        type: String,
-        default: ''
-      }
-    }
-  ],
-  isPublished: {
-    type: Boolean,
-    default: false
+    required: true
   },
   slug: {
     type: String,
-    required: [true, 'Veuillez spécifier un slug'],
+    required: true,
     unique: true,
-    trim: true,
-    maxlength: [100, 'Le slug ne peut pas dépasser 100 caractères']
+    trim: true
   },
-  type: {
+  releaseDate: {
+    type: Date,
+    required: true
+  },
+  coverImage: {
     type: String,
-    required: [true, 'Veuillez spécifier le type de sortie'],
-    enum: ['single', 'ep', 'album']
+    required: true
   },
-  clicks: {
-    type: Number,
-    default: 0
+  description: {
+    type: String,
+    default: ''
   },
-  analytics: [
-    {
-      platform: {
-        type: String,
-        required: true
-      },
-      clicks: {
-        type: Number,
-        default: 0
-      },
-      date: {
-        type: Date,
-        default: Date.now
-      }
+  platforms: [{
+    name: {
+      type: String,
+      required: true
+    },
+    url: {
+      type: String,
+      required: true
+    },
+    icon: {
+      type: String,
+      required: true
+    },
+    order: {
+      type: Number,
+      default: 0
     }
-  ],
+  }],
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -92,42 +66,11 @@ const SmartLinkSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  },
-  user: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'User',
-    required: [true, 'Veuillez spécifier un utilisateur']
   }
+}, {
+  timestamps: true
 });
 
-// Middleware pour mettre à jour le champ updatedAt avant la sauvegarde
-SmartLinkSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+const SmartLink = mongoose.model('SmartLink', SmartLinkSchema);
 
-// Méthode pour incrémenter le compteur de clics
-SmartLinkSchema.methods.incrementClicks = async function(platform) {
-  this.clicks += 1;
-  
-  // Si une plateforme est spécifiée, incrémenter les clics pour cette plateforme
-  if (platform) {
-    const platformAnalytics = this.analytics.find(
-      item => item.platform === platform
-    );
-    
-    if (platformAnalytics) {
-      platformAnalytics.clicks += 1;
-    } else {
-      this.analytics.push({
-        platform,
-        clicks: 1,
-        date: Date.now()
-      });
-    }
-  }
-  
-  return this.save();
-};
-
-module.exports = mongoose.model('SmartLink', SmartLinkSchema);
+module.exports = SmartLink;

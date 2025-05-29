@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --runInBand --detectOpenHandles",
+    "test:coverage": "jest --coverage",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js"
   },
@@ -26,10 +27,15 @@
     "mongoose": "^8.15.1",
     "morgan": "^1.10.0",
     "multer": "^2.0.0",
+    "pdfkit": "^0.17.1",
+    "qrcode": "^1.5.4",
     "sharp": "^0.34.2",
+    "uuid": "^11.1.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0",
     "mongodb-memory-server": "^10.1.4",
     "supertest": "^7.1.1"
   }

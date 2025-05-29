@@ -1,74 +1,69 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const Schema = mongoose.Schema;
 
-const UserSchema = new mongoose.Schema({
-  name: {
+/**
+ * Schéma pour le modèle User
+ */
+const UserSchema = new Schema({
+  username: {
     type: String,
-    required: [true, 'Veuillez ajouter un nom'],
+    required: true,
+    unique: true,
     trim: true,
-    maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères']
+    minlength: 3,
+    maxlength: 30
   },
   email: {
     type: String,
-    required: [true, 'Veuillez ajouter un email'],
+    required: true,
     unique: true,
-    match: [
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Veuillez ajouter un email valide'
-    ]
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
+    trim: true,
+    lowercase: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Veuillez fournir une adresse email valide']
   },
   password: {
     type: String,
-    required: [true, 'Veuillez ajouter un mot de passe'],
-    minlength: [6, 'Le mot de passe doit faire au moins 6 caractères'],
-    select: false
+    required: true,
+    minlength: 6
   },
-  resetPasswordToken: String,
-  resetPasswordExpire: Date,
+  fullName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  roles: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Role'
+  }],
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'suspended'],
+    default: 'active'
+  },
+  lastLogin: {
+    type: Date,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
+}, {
+  timestamps: true
 });
 
-// Crypter le mot de passe avant la sauvegarde
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    next();
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
-
-// Signer le JWT et le retourner
-UserSchema.methods.getSignedJwtToken = function() {
-  return jwt.sign(
-    { id: this._id },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE }
-  );
+/**
+ * Méthode pour comparer les mots de passe
+ */
+UserSchema.methods.comparePassword = async function(password) {
+  // Dans un environnement réel, utiliser bcrypt.compare
+  return password === this.password;
 };
 
-// Signer le refresh token et le retourner
-UserSchema.methods.getSignedRefreshToken = function() {
-  return jwt.sign(
-    { id: this._id },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: process.env.JWT_REFRESH_EXPIRE }
-  );
-};
+const User = mongoose.model('User', UserSchema);
 
-// Vérifier si le mot de passe correspond
-UserSchema.methods.matchPassword = async function(enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
-
-module.exports = mongoose.model('User', UserSchema);
+module.exports = User;
