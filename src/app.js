@@ -27,9 +27,9 @@ const authRoutes = require('../routes/auth.routes');
 const artistRoutes = require('../routes/artists.routes');
 const smartlinkRoutes = require('../routes/smartLinkRoutes');
 const uploadRoutes = require('../routes/uploadRoutes');
+const wordpressRoutes = require('../routes/wordpress.routes');
 // Ajoutez d'autres routeurs ici selon votre projet
 // const userRoutes = require('../routes/user.routes.js');
-// const wordpressRoutes = require('../routes/wordpress.routes.js');
 
 const app = express();
 
@@ -69,8 +69,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/artists', artistRoutes);
 app.use('/api/smartlinks', smartlinkRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/wordpress', wordpressRoutes);
 // app.use('/api/users', userRoutes);
-// app.use('/api/wordpress', wordpressRoutes);
 app.use('/api/reviews', require('../routes/reviews.routes'));
 
 app.get('/api', (req, res) => {
