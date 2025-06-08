@@ -1,301 +1,46 @@
-const WordPressConnection = require('../models/WordPressConnection');
-const WordPressPost = require('../models/WordPressPost');
-const ErrorResponse = require('../utils/errorResponse');
-const asyncHandler = require("../middleware/asyncHandler");
-const crypto = require('crypto');
+// À remplacer dans controllers/wordpress.js - fonction getLatestPosts
 
-// @desc    Connecter à un site WordPress
-// @route   POST /api/wordpress/connect
-// @access  Private/Admin
-exports.connect = asyncHandler(async (req, res, next) => {
-  const { siteUrl, username, applicationPassword, categories, syncFrequency } = req.body;
-
-  // Vérifier si une connexion existe déjà
-  let connection = await WordPressConnection.findOne();
-  
-  if (connection) {
-    // Mettre à jour la connexion existante
-    connection = await WordPressConnection.findByIdAndUpdate(
-      connection._id,
-      {
-        siteUrl,
-        username,
-        applicationPassword,
-        categories: categories || [],
-        syncFrequency: syncFrequency || 'manual',
-        status: 'connected',
-        updatedAt: Date.now()
-      },
-      {
-        new: true,
-        runValidators: true
-      }
-    );
-  } else {
-    // Créer une nouvelle connexion
-    connection = await WordPressConnection.create({
-      siteUrl,
-      username,
-      applicationPassword,
-      categories: categories || [],
-      syncFrequency: syncFrequency || 'manual',
-      status: 'connected'
-    });
-  }
-
-  // Ne pas renvoyer le mot de passe dans la réponse
-  connection.applicationPassword = undefined;
-
-  res.status(200).json({
-    success: true,
-    data: connection
-  });
-});
-
-// @desc    Déconnecter du site WordPress
-// @route   POST /api/wordpress/disconnect
-// @access  Private/Admin
-exports.disconnect = asyncHandler(async (req, res, next) => {
-  const connection = await WordPressConnection.findOne();
-  
-  if (!connection) {
-    return next(
-      new ErrorResponse('Aucune connexion WordPress trouvée', 404)
-    );
-  }
-
-  connection.status = 'disconnected';
-  connection.updatedAt = Date.now();
-  await connection.save();
-
-  res.status(200).json({
-    success: true,
-    data: connection
-  });
-});
-
-// @desc    Obtenir le statut de la connexion WordPress
-// @route   GET /api/wordpress/status
-// @access  Private/Admin
-exports.getConnectionStatus = asyncHandler(async (req, res, next) => {
-  const connection = await WordPressConnection.findOne().select('-applicationPassword');
-  
-  if (!connection) {
-    return res.status(200).json({
-      success: true,
-      data: {
-        status: 'disconnected',
-        message: 'Aucune connexion WordPress configurée'
-      }
-    });
-  }
-
-  res.status(200).json({
-    success: true,
-    data: connection
-  });
-});
-
-// @desc    Mettre à jour les paramètres de connexion WordPress
-// @route   PUT /api/wordpress/settings
-// @access  Private/Admin
-exports.updateConnectionSettings = asyncHandler(async (req, res, next) => {
-  const { categories, syncFrequency } = req.body;
-  
-  const connection = await WordPressConnection.findOne();
-  
-  if (!connection) {
-    return next(
-      new ErrorResponse('Aucune connexion WordPress trouvée', 404)
-    );
-  }
-
-  connection.categories = categories || connection.categories;
-  connection.syncFrequency = syncFrequency || connection.syncFrequency;
-  connection.updatedAt = Date.now();
-  await connection.save();
-
-  res.status(200).json({
-    success: true,
-    data: connection
-  });
-});
-
-// @desc    Synchroniser les articles WordPress
-// @route   POST /api/wordpress/sync
-// @access  Private/Admin
-exports.syncPosts = asyncHandler(async (req, res, next) => {
-  const connection = await WordPressConnection.findOne().select('+applicationPassword');
-  
-  if (!connection) {
-    return next(
-      new ErrorResponse('Aucune connexion WordPress trouvée', 404)
-    );
-  }
-
-  if (connection.status !== 'connected') {
-    return next(
-      new ErrorResponse('La connexion WordPress est inactive', 400)
-    );
-  }
-
-  // Dans une implémentation réelle, nous ferions un appel à l'API WordPress ici
-  // Pour cette démonstration, nous simulons la synchronisation
-  
-  // Simuler la récupération des articles WordPress
-  const mockPosts = [
-    {
-      wpId: 1,
-      title: 'Comment promouvoir votre musique en 2025',
-      content: 'Contenu détaillé sur la promotion musicale...',
-      excerpt: 'Découvrez les meilleures stratégies pour promouvoir votre musique en 2025',
-      slug: 'promouvoir-musique-2025',
-      featuredImage: 'https://example.com/images/promotion-musicale.jpg',
-      categories: ['Marketing', 'Promotion'],
-      tags: ['musique', 'promotion', '2025'],
-      status: 'publish',
-      publishedDate: new Date()
-    },
-    {
-      wpId: 2,
-      title: 'Les tendances du marketing musical pour 2025',
-      content: 'Analyse des tendances marketing dans l\'industrie musicale...',
-      excerpt: 'Quelles sont les tendances marketing à suivre dans l\'industrie musicale en 2025',
-      slug: 'tendances-marketing-musical-2025',
-      featuredImage: 'https://example.com/images/tendances-marketing.jpg',
-      categories: ['Marketing', 'Tendances'],
-      tags: ['musique', 'marketing', 'tendances'],
-      status: 'publish',
-      publishedDate: new Date()
-    }
-  ];
-
-  // Enregistrer ou mettre à jour les articles dans la base de données
-  for (const post of mockPosts) {
-    await WordPressPost.findOneAndUpdate(
-      { wpId: post.wpId },
-      {
-        ...post,
-        syncedAt: Date.now()
-      },
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true
-      }
-    );
-  }
-
-  // Mettre à jour la date de dernière synchronisation
-  connection.lastSync = Date.now();
-  await connection.save();
-
-  res.status(200).json({
-    success: true,
-    message: 'Synchronisation réussie',
-    count: mockPosts.length,
-    lastSync: connection.lastSync
-  });
-});
-
-// @desc    Obtenir tous les articles WordPress
+// @desc    Obtenir les derniers articles WordPress (route publique - PROXY)
 // @route   GET /api/wordpress/posts
-// @access  Private/Admin
-exports.getPosts = asyncHandler(async (req, res, next) => {
-  const posts = await WordPressPost.find().sort('-publishedDate');
-  
-  res.status(200).json({
-    success: true,
-    count: posts.length,
-    data: posts
-  });
-});
-
-// @desc    Obtenir un article WordPress spécifique
-// @route   GET /api/wordpress/posts/:id
-// @access  Private/Admin
-exports.getPost = asyncHandler(async (req, res, next) => {
-  const post = await WordPressPost.findById(req.params.id);
-
-  if (!post) {
-    return next(
-      new ErrorResponse(`Article non trouvé avec l'id ${req.params.id}`, 404)
-    );
-  }
-
-  res.status(200).json({
-    success: true,
-    data: post
-  });
-});
-
-// @desc    Supprimer un article WordPress
-// @route   DELETE /api/wordpress/posts/:id
-// @access  Private/Admin
-exports.deletePost = asyncHandler(async (req, res, next) => {
-  const post = await WordPressPost.findById(req.params.id);
-
-  if (!post) {
-    return next(
-      new ErrorResponse(`Article non trouvé avec l'id ${req.params.id}`, 404)
-    );
-  }
-
-  await post.remove();
-
-  res.status(200).json({
-    success: true,
-    data: {}
-  });
-});
-
-// @desc    Obtenir les derniers articles WordPress (route publique)
-// @route   GET /api/v1/wordpress/posts
 // @access  Public
 exports.getLatestPosts = asyncHandler(async (req, res, next) => {
   try {
-    console.log('📝 WordPress Controller: Récupération des articles...');
+    console.log('📝 WordPress Proxy: Récupération des articles...');
     
-    // Récupérer la connexion WordPress
-    const connection = await WordPressConnection.findOne().select('+applicationPassword');
+    // Configuration directe de l'API WordPress (plus besoin de connexion en base)
+    const WORDPRESS_API_URL = 'https://blog-wp-production.up.railway.app/wp-json/wp/v2/posts';
     
-    if (!connection || connection.status !== 'connected') {
-      console.error('❌ WordPress Controller: Pas de connexion WordPress active');
-      return res.status(200).json({
-        success: true,
-        data: [] // Retourner un tableau vide plutôt qu'une erreur
-      });
-    }
-
-    // Construire l'URL de l'API WordPress
-    const wpApiUrl = `${connection.siteUrl}/wp-json/wp/v2/posts`;
-    console.log('🔗 WordPress Controller: URL API:', wpApiUrl);
-
     // Paramètres de la requête
-    const params = {
+    const params = new URLSearchParams({
       per_page: req.query.limit || 3,
-      _embed: true,
+      _embed: 'true',
       status: 'publish',
       orderby: 'date',
       order: 'desc'
-    };
+    });
 
-    // Faire la requête à l'API WordPress
-    const response = await fetch(wpApiUrl + '?' + new URLSearchParams(params), {
+    const fullUrl = `${WORDPRESS_API_URL}?${params}`;
+    console.log('🔗 WordPress Proxy: URL API:', fullUrl);
+
+    // Faire la requête à l'API WordPress depuis le backend (pas de CORS côté serveur)
+    const response = await fetch(fullUrl, {
+      method: 'GET',
       headers: {
-        'Accept': 'application/json'
-      }
+        'Accept': 'application/json',
+        'User-Agent': 'MDMC-Backend-Proxy/1.0'
+      },
+      timeout: 10000 // 10 secondes timeout
     });
 
     if (!response.ok) {
-      console.error('❌ WordPress Controller: Erreur API WordPress:', response.status);
-      throw new Error(`Erreur API WordPress: ${response.status}`);
+      console.error('❌ WordPress Proxy: Erreur API WordPress:', response.status, response.statusText);
+      throw new Error(`Erreur API WordPress: ${response.status} ${response.statusText}`);
     }
 
     const posts = await response.json();
-    console.log('✅ WordPress Controller: Articles récupérés:', posts.length);
+    console.log('✅ WordPress Proxy: Articles récupérés:', posts.length);
 
-    // Transformer les données pour correspondre au format attendu par le frontend
+    // Transformer et optimiser les données pour le frontend
     const formattedPosts = posts.map(post => ({
       id: post.id,
       title: {
@@ -304,21 +49,99 @@ exports.getLatestPosts = asyncHandler(async (req, res, next) => {
       excerpt: {
         rendered: post.excerpt.rendered
       },
+      content: {
+        rendered: post.content.rendered
+      },
       date: post.date,
+      modified: post.modified,
+      slug: post.slug,
       link: post.link,
-      _embedded: post._embedded || {},
-      categories: post.categories || []
+      categories: post.categories || [],
+      
+      // Images optimisées
+      _embedded: post._embedded ? {
+        'wp:featuredmedia': post._embedded['wp:featuredmedia'] ? [{
+          source_url: post._embedded['wp:featuredmedia'][0]?.source_url,
+          alt_text: post._embedded['wp:featuredmedia'][0]?.alt_text || post.title.rendered
+        }] : null,
+        'wp:term': post._embedded['wp:term'] || []
+      } : {},
+
+      // Métadonnées SEO si disponibles
+      yoast_head_json: post.yoast_head_json || {}
     }));
+
+    // Réponse avec métadonnées du proxy
+    res.status(200).json({
+      success: true,
+      count: formattedPosts.length,
+      data: formattedPosts,
+      meta: {
+        source: 'WordPress API Proxy',
+        timestamp: new Date().toISOString(),
+        cached: false
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ WordPress Proxy: Erreur complète:', error);
+    
+    // En cas d'erreur, retourner des articles de fallback
+    const fallbackArticles = [
+      {
+        id: 1,
+        title: { rendered: "Stratégies de marketing musical avancées" },
+        excerpt: { rendered: "Découvrez les dernières tendances en marketing musical et comment optimiser votre présence digitale..." },
+        date: new Date().toISOString(),
+        link: "https://blog-wp-production.up.railway.app/",
+        categories: [1],
+        _embedded: {
+          'wp:featuredmedia': [{
+            source_url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=400&fit=crop&crop=center",
+            alt_text: "Marketing musical"
+          }]
+        }
+      },
+      {
+        id: 2,
+        title: { rendered: "Comment propulser son clip musical en 2025" },
+        excerpt: { rendered: "Les coulisses d'un succès inattendu et les stratégies éprouvées pour faire exploser la visibilité de votre clip..." },
+        date: new Date().toISOString(),
+        link: "https://blog-wp-production.up.railway.app/",
+        categories: [2],
+        _embedded: {
+          'wp:featuredmedia': [{
+            source_url: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=400&fit=crop&crop=center",
+            alt_text: "Studio musical"
+          }]
+        }
+      },
+      {
+        id: 3,
+        title: { rendered: "Optimisation des campagnes publicitaires musicales" },
+        excerpt: { rendered: "Techniques avancées et méthodes éprouvées pour maximiser le ROI de vos campagnes publicitaires..." },
+        date: new Date().toISOString(),
+        link: "https://blog-wp-production.up.railway.app/",
+        categories: [3],
+        _embedded: {
+          'wp:featuredmedia': [{
+            source_url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=400&fit=crop&crop=center",
+            alt_text: "Marketing digital"
+          }]
+        }
+      }
+    ];
 
     res.status(200).json({
       success: true,
-      data: formattedPosts
-    });
-  } catch (error) {
-    console.error('❌ WordPress Controller: Erreur:', error);
-    res.status(200).json({
-      success: true,
-      data: [] // Retourner un tableau vide en cas d'erreur
+      count: fallbackArticles.length,
+      data: fallbackArticles,
+      meta: {
+        source: 'Fallback Articles',
+        timestamp: new Date().toISOString(),
+        cached: false,
+        error: 'WordPress API indisponible'
+      }
     });
   }
 });
