@@ -248,3 +248,77 @@ exports.deletePost = asyncHandler(async (req, res, next) => {
     data: {}
   });
 });
+
+// @desc    Obtenir les derniers articles WordPress (route publique)
+// @route   GET /api/v1/wordpress/posts
+// @access  Public
+exports.getLatestPosts = asyncHandler(async (req, res, next) => {
+  try {
+    console.log('📝 WordPress Controller: Récupération des articles...');
+    
+    // Récupérer la connexion WordPress
+    const connection = await WordPressConnection.findOne().select('+applicationPassword');
+    
+    if (!connection || connection.status !== 'connected') {
+      console.error('❌ WordPress Controller: Pas de connexion WordPress active');
+      return res.status(200).json({
+        success: true,
+        data: [] // Retourner un tableau vide plutôt qu'une erreur
+      });
+    }
+
+    // Construire l'URL de l'API WordPress
+    const wpApiUrl = `${connection.siteUrl}/wp-json/wp/v2/posts`;
+    console.log('🔗 WordPress Controller: URL API:', wpApiUrl);
+
+    // Paramètres de la requête
+    const params = {
+      per_page: req.query.limit || 3,
+      _embed: true,
+      status: 'publish',
+      orderby: 'date',
+      order: 'desc'
+    };
+
+    // Faire la requête à l'API WordPress
+    const response = await fetch(wpApiUrl + '?' + new URLSearchParams(params), {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      console.error('❌ WordPress Controller: Erreur API WordPress:', response.status);
+      throw new Error(`Erreur API WordPress: ${response.status}`);
+    }
+
+    const posts = await response.json();
+    console.log('✅ WordPress Controller: Articles récupérés:', posts.length);
+
+    // Transformer les données pour correspondre au format attendu par le frontend
+    const formattedPosts = posts.map(post => ({
+      id: post.id,
+      title: {
+        rendered: post.title.rendered
+      },
+      excerpt: {
+        rendered: post.excerpt.rendered
+      },
+      date: post.date,
+      link: post.link,
+      _embedded: post._embedded || {},
+      categories: post.categories || []
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedPosts
+    });
+  } catch (error) {
+    console.error('❌ WordPress Controller: Erreur:', error);
+    res.status(200).json({
+      success: true,
+      data: [] // Retourner un tableau vide en cas d'erreur
+    });
+  }
+});
