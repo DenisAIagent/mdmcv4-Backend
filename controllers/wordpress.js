@@ -1,38 +1,86 @@
-// controllers/wordpress.js - Fix export/import
+// controllers/wordpress.js - Fix export/import avec logs détaillés
 const axios = require('axios');
+
+// Système de logs détaillés
+const logger = {
+  info: (msg, data = {}) => console.log(`✅ [${new Date().toISOString()}] WP-CTRL: ${msg}`, data),
+  error: (msg, error = {}) => console.error(`❌ [${new Date().toISOString()}] WP-CTRL: ${msg}`, error),
+  warn: (msg, data = {}) => console.warn(`⚠️ [${new Date().toISOString()}] WP-CTRL: ${msg}`, data),
+  debug: (msg, data = {}) => console.log(`🔍 [${new Date().toISOString()}] WP-CTRL: ${msg}`, data),
+  request: (url, params) => console.log(`📡 [${new Date().toISOString()}] WP-CTRL: Requête vers ${url}`, params),
+  response: (status, dataLength) => console.log(`📦 [${new Date().toISOString()}] WP-CTRL: Réponse ${status}, ${dataLength} articles`)
+};
 
 // @desc    Obtenir les derniers articles WordPress (PROXY)
 // @route   GET /api/wordpress/posts
 // @access  Public
 const getLatestPosts = async (req, res) => {
+  const startTime = Date.now();
+  
   try {
-    console.log('🔄 Controller: Début appel WordPress API...');
-    
-    const response = await axios.get('https://blog.mdmcmusicads.com/wp-json/wp/v2/posts', {
-      params: {
-        per_page: 3,
-        _embed: true
-      },
-      timeout: 10000
+    logger.info('🚀 Début getLatestPosts');
+    logger.debug('Headers de la requête:', {
+      origin: req.headers.origin,
+      userAgent: req.headers['user-agent']?.substring(0, 50),
+      referer: req.headers.referer
     });
 
-    console.log('✅ Controller: Réponse WordPress reçue, articles:', response.data.length);
+    const wpUrl = 'https://blog.mdmcmusicads.com/wp-json/wp/v2/posts';
+    const params = {
+      per_page: 3,
+      _embed: true
+    };
+    
+    logger.request(wpUrl, params);
+    logger.info('⏳ Appel WordPress API en cours...');
+    
+    const response = await axios.get(wpUrl, {
+      params: params,
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'MDMC-Backend/1.0'
+      }
+    });
 
-    const formattedPosts = response.data.map(post => {
-      // Extraire l'image featured
+    logger.response(response.status, response.data.length);
+    logger.debug('Headers de réponse WordPress:', {
+      contentType: response.headers['content-type'],
+      contentLength: response.headers['content-length'],
+      server: response.headers.server
+    });
+
+    if (!response.data || !Array.isArray(response.data)) {
+      throw new Error('Format de réponse WordPress invalide');
+    }
+
+    logger.info(`✅ ${response.data.length} articles bruts reçus de WordPress`);
+
+    const formattedPosts = response.data.map((post, index) => {
+      logger.debug(`🔄 Formatage article ${index + 1}:`, {
+        id: post.id,
+        title: post.title?.rendered?.substring(0, 30) + '...'
+      });
+
+      // Extraire l'image featured avec logs
       let featuredImage = 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
       
-      if (post._embedded && post._embedded['wp:featuredmedia'] && post._embedded['wp:featuredmedia'][0]) {
+      if (post._embedded?.['wp:featuredmedia']?.[0]?.source_url) {
         featuredImage = post._embedded['wp:featuredmedia'][0].source_url;
+        logger.debug(`📷 Image trouvée pour article ${post.id}:`, featuredImage.substring(0, 50) + '...');
+      } else {
+        logger.warn(`📷 Pas d'image featured pour article ${post.id}, utilisation fallback`);
       }
 
-      // Extraire la catégorie
+      // Extraire la catégorie avec logs
       let category = 'ARTICLE';
-      if (post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0] && post._embedded['wp:term'][0][0]) {
+      if (post._embedded?.['wp:term']?.[0]?.[0]?.name) {
         category = post._embedded['wp:term'][0][0].name.toUpperCase();
+        logger.debug(`🏷️ Catégorie trouvée pour article ${post.id}:`, category);
+      } else {
+        logger.warn(`🏷️ Pas de catégorie pour article ${post.id}, utilisation par défaut`);
       }
 
-      return {
+      const formattedPost = {
         id: post.id,
         title: post.title.rendered,
         excerpt: post.excerpt.rendered.replace(/<[^>]*>/g, '').substring(0, 150) + '...',
@@ -45,20 +93,56 @@ const getLatestPosts = async (req, res) => {
         image: featuredImage,
         link: post.link
       };
+
+      logger.debug(`✅ Article ${index + 1} formaté:`, {
+        id: formattedPost.id,
+        title: formattedPost.title.substring(0, 30) + '...',
+        category: formattedPost.category
+      });
+
+      return formattedPost;
     });
 
-    console.log('✅ Controller: Articles formatés:', formattedPosts.length);
+    const duration = Date.now() - startTime;
+    logger.info(`🎯 Articles traités avec succès en ${duration}ms`);
 
-    res.status(200).json({
+    const responseData = {
       success: true,
       count: formattedPosts.length,
-      data: formattedPosts
+      data: formattedPosts,
+      processTime: `${duration}ms`,
+      timestamp: new Date().toISOString()
+    };
+
+    logger.info('📤 Envoi réponse au frontend:', {
+      count: formattedPosts.length,
+      processTime: `${duration}ms`
     });
 
+    res.status(200).json(responseData);
+
   } catch (error) {
-    console.error('❌ Controller WordPress Error:', error.message);
+    const duration = Date.now() - startTime;
     
-    // Fallback avec articles par défaut
+    logger.error('💥 Erreur dans getLatestPosts:', {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      duration: `${duration}ms`
+    });
+
+    if (error.response) {
+      logger.error('📡 Détails réponse d\'erreur:', {
+        status: error.response.status,
+        headers: error.response.headers,
+        data: error.response.data
+      });
+    }
+
+    logger.warn('🔄 Utilisation fallback articles à cause de l\'erreur');
+    
+    // Fallback avec articles par défaut avec logs
     const fallbackPosts = [
       {
         id: 1,
@@ -89,13 +173,16 @@ const getLatestPosts = async (req, res) => {
       }
     ];
 
-    console.log('🔄 Controller: Utilisation fallback articles');
+    logger.info(`📦 Envoi ${fallbackPosts.length} articles fallback`);
 
     res.status(200).json({
       success: true,
       count: fallbackPosts.length,
       data: fallbackPosts,
-      note: 'Fallback data - WordPress API non accessible'
+      note: 'Fallback data - WordPress API non accessible',
+      error: error.message,
+      processTime: `${duration}ms`,
+      timestamp: new Date().toISOString()
     });
   }
 };
