@@ -10,7 +10,8 @@ const {
   deleteSmartLinkById,
   getSmartLinksByArtistSlug,
   getPublicSmartLinkBySlugs,
-  logPlatformClick
+  logPlatformClick,
+  fetchPlatformLinks
 } = require("../controllers/smartLinkController"); // Adaptez le chemin
 
 // Middlewares d'authentification et d'autorisation
@@ -154,6 +155,19 @@ router.route("/:id")
     handleValidationErrors,
     deleteSmartLinkById
   );
+
+// Route pour l'auto-remplissage des liens de plateformes
+router.post(
+  "/fetch-platform-links", // Sera monté comme /api/v1/smartlinks/fetch-platform-links
+  protect,
+  authorize("admin"),
+  body("sourceUrl", "URL source ou ISRC requis")
+    .notEmpty()
+    .withMessage("L'URL source ou ISRC ne peut pas être vide.")
+    .trim(),
+  handleValidationErrors,
+  fetchPlatformLinks
+);
 
 // Routes Publiques
 router.get(
