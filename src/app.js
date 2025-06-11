@@ -65,16 +65,38 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // --- Monter les Routeurs ---
-app.use('/api/auth', authRoutes);
-app.use('/api/artists', artistRoutes);
-app.use('/api/smartlinks', smartlinkRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/wordpress', wordpressRoutes);
-// app.use('/api/users', userRoutes);
-app.use('/api/reviews', require('../routes/reviews.routes'));
+// ✅ CORRECTION: Toutes les routes maintenant sur /api/v1
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/artists', artistRoutes);
+app.use('/api/v1/smartlinks', smartlinkRoutes);
+app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/wordpress', wordpressRoutes);
+app.use('/api/v1/reviews', require('../routes/reviews.routes'));
 
+// ✅ CORRECTION: Route principale API v1
+app.get('/api/v1', (req, res) => {
+  res.status(200).json({ 
+    success: true, 
+    message: 'API MDMC Music Ads v1 est opérationnelle !',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/v1/auth',
+      artists: '/api/v1/artists',
+      smartlinks: '/api/v1/smartlinks',
+      upload: '/api/v1/upload',
+      wordpress: '/api/v1/wordpress',
+      reviews: '/api/v1/reviews'
+    }
+  });
+});
+
+// ✅ CORRECTION: Maintenir compatibilité ancienne route
 app.get('/api', (req, res) => {
-  res.status(200).json({ success: true, message: 'API MDMC Music Ads SmartLink Builder est opérationnelle !' });
+  res.status(200).json({ 
+    success: true, 
+    message: 'API MDMC Music Ads est opérationnelle !',
+    note: 'Utilisez /api/v1 pour les nouvelles requêtes'
+  });
 });
 
 // --- Middleware de Gestion d'Erreurs Global ---
