@@ -68,7 +68,9 @@ app.use(cookieParser());
 // ✅ CORRECTION: Toutes les routes maintenant sur /api/v1
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/artists', artistRoutes);
-app.use('/api/v1/smartlinks', smartlinkRoutes);
+app.use('/api/v1/smartlinks', smartlinkRoutes);// Après la ligne 71
+app.use('/api/v1/wordpress', wordpressRoutes);
+app.use('/api/wordpress', wordpressRoutes); // ⭐ Ajoutez cette ligne
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/wordpress', wordpressRoutes);
 app.use('/api/v1/reviews', require('../routes/reviews.routes'));
