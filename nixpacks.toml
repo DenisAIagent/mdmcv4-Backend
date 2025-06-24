@@ -1,12 +1,11 @@
-[providers]
-nodejs = "18"
+# Providers doit être un tableau, pas un objet
+providers = ["nodejs"]
 
-[variables]
-NODE_ENV = "production"
-PORT = "5001"
+[phases.setup]
+nixPkgs = ["nodejs-18_x"]
 
-[build]
-cmd = "npm ci --only=production"
+[phases.install]
+cmds = ["npm ci --only=production"]
 
 [start]
 cmd = "npm start"
