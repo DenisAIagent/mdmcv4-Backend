@@ -1,0 +1,14 @@
+[variables]
+NODE_ENV = "production"
+
+[phases.setup]
+aptPkgs = ["nodejs-18", "npm"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = []
+
+[start]
+cmd = "npm start"
