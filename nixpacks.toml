@@ -1,11 +1,3 @@
-# Providers doit être un tableau, pas un objet
-providers = ["nodejs"]
-
-[phases.setup]
-nixPkgs = ["nodejs-18_x"]
-
-[phases.install]
-cmds = ["npm ci --only=production"]
-
+# Auto-détection du provider Node.js basée sur package.json
 [start]
 cmd = "npm start"
