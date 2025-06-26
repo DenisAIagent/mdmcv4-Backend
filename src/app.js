@@ -73,7 +73,8 @@ app.use('/api/v1/wordpress', wordpressRoutes);
 app.use('/api/wordpress', wordpressRoutes); // ⭐ Ajoutez cette ligne
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/wordpress', wordpressRoutes);
-app.use('/api/v1/reviews', require('../routes/reviews.routes'));
+app.use("/api/v1/reviews", require("../routes/reviews.routes"));
+app.use("/api/simulator", require("../routes/simulator.routes"));
 
 // ✅ CORRECTION: Route principale API v1
 app.get('/api/v1', (req, res) => {
