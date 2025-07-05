@@ -28,19 +28,32 @@ exports.protect = asyncHandler(async (req, res, next) => {
   }
 
   try {
-    // 4. Vérifier et décoder le token avec la clé secrète
+    // 4. Gestion spéciale pour le token de bypass en développement
+    if (token === 'dev-bypass-token' && process.env.NODE_ENV !== 'production') {
+      console.log('🔓 Auth: Bypass activé pour développement');
+      // Créer un utilisateur admin fictif pour le développement
+      req.user = {
+        _id: 'dev-admin-id',
+        name: 'Dev Admin',
+        email: 'dev@admin.local',
+        role: 'admin'
+      };
+      return next();
+    }
+
+    // 5. Vérifier et décoder le token avec la clé secrète
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 5. Trouver l'utilisateur correspondant en BDD et l'attacher à req.user
+    // 6. Trouver l'utilisateur correspondant en BDD et l'attacher à req.user
     //    Ne pas sélectionner le mot de passe
     req.user = await User.findById(decoded.id).select('-password');
 
-    // 6. Si l'utilisateur associé au token n'existe plus, renvoyer une erreur 401
+    // 7. Si l'utilisateur associé au token n'existe plus, renvoyer une erreur 401
     if (!req.user) {
        return next(new ErrorResponse('Utilisateur associé au token non trouvé', 401));
     }
 
-    // 7. Si tout est OK, passer au middleware ou au contrôleur suivant
+    // 8. Si tout est OK, passer au middleware ou au contrôleur suivant
     next();
   } catch (err) {
     // Gérer les erreurs de vérification JWT (token invalide, expiré)

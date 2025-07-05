@@ -52,7 +52,12 @@ connectDB();
 
 // --- Middlewares ---
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+    'http://localhost:3001',
+    'http://192.168.1.236:3000',
+    'http://192.168.1.236:3001'
+  ],
   credentials: true
 }));
 
@@ -151,6 +156,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5001;
 const server = app.listen(
   PORT,
+  '0.0.0.0',
   console.log(
     `Serveur démarré en mode ${process.env.NODE_ENV || 'inconnu (probablement development)'} sur le port ${PORT}`
   )
