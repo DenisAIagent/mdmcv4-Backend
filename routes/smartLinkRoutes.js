@@ -60,9 +60,27 @@ const createSmartLinkValidationRules = [
     .notEmpty().withMessage("Le titre de la musique ne peut pas être vide.")
     .trim()
     .isLength({ min: 1, max: 150 }),
-  body("artistId", "L'ID de l'artiste est requis et doit être un ID MongoDB valide")
-    .notEmpty().withMessage("L'ID de l'artiste ne peut pas être vide.")
-    .isMongoId(),
+  // Validation customisée pour artistId OU artistName
+  body()
+    .custom((value, { req }) => {
+      const { artistId, artistName } = req.body;
+      if (!artistId && !artistName) {
+        throw new Error("artistId ou artistName est requis");
+      }
+      if (artistId && artistName) {
+        throw new Error("Fournissez soit artistId soit artistName, pas les deux");
+      }
+      return true;
+    }),
+  body("artistId")
+    .optional()
+    .isMongoId()
+    .withMessage("L'artistId doit être un ID MongoDB valide"),
+  body("artistName")
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 100 })
+    .withMessage("Le nom d'artiste doit contenir entre 1 et 100 caractères"),
   body("coverImageUrl", "URL d'image de couverture invalide")
     .optional({ checkFalsy: true })
     .isURL(),

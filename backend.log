@@ -1,0 +1,575 @@
+
+> mdmc-backend@1.0.0 dev
+> nodemon src/app.js
+
+[33m[nodemon] 3.1.10[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-06T17:18:52.242Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-06T17:18:52.244Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[0mGET /api/v1 [32m200[0m 1.223 ms - 274[0m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-06T17:20:31.739Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-06T17:20:31.740Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-06T17:20:40.853Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-06T17:20:40.854Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+🔓 Auth: Bypass activé pour développement
+Backend: Récupération liens Odesli pour: https://open.spotify.com/track/2DlHlPMa4M17kufBvI2lEN (FR)
+📋 Type détecté: spotify_url
+🔍 Odesli: Recherche pour "https://open.spotify.com/track/2DlHlPMa4M17kufBvI2lEN" (FR)
+🔗 Odesli Request: GET https://api.song.link/v1-alpha.1/links?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F2DlHlPMa4M17kufBvI2lEN&userCountry=FR&songIfSingle=true
+📥 Odesli Response Status: 200
+🔄 Début formatage réponse...
+🔄 Formatage réponse Odesli: [
+  'entityUniqueId',
+  'userCountry',
+  'pageUrl',
+  'entitiesByUniqueId',
+  'linksByPlatform'
+]
+🎵 Entité trouvée: {
+  id: 'SPOTIFY_SONG::2DlHlPMa4M17kufBvI2lEN',
+  title: 'Chop Suey!',
+  artist: 'System Of A Down'
+}
+🧹 Nettoyage liens plateformes: [
+  'amazonMusic',  'amazonStore',
+  'audiomack',    'audius',
+  'boomplay',     'deezer',
+  'appleMusic',   'itunes',
+  'napster',      'pandora',
+  'soundcloud',   'tidal',
+  'yandex',       'youtube',
+  'youtubeMusic', 'spotify'
+]
+🔗 Traitement plateforme amazonMusic: object {
+  country: 'FR',
+  url: 'https://music.amazon.com/albums/B07BCG7GTG?trackAsin=B07BCDVD6T',
+  entityUniqueId: 'AMAZON_SONG::B07BCDVD6T'
+}
+🔗 Traitement plateforme amazonStore: object {
+  country: 'US',
+  url: 'https://amazon.com/dp/B07BCDVD6T',
+  entityUniqueId: 'AMAZON_SONG::B07BCDVD6T'
+}
+🔗 Traitement plateforme audiomack: object {
+  country: 'FR',
+  url: 'https://audiomack.com/song/iyanla-4/chop-suey-system-of-a-down-lyrics',
+  entityUniqueId: 'AUDIOMACK_SONG::5031716'
+}
+🔗 Traitement plateforme audius: object {
+  country: 'FR',
+  url: 'https://audius.co/tracks/Xl5oR',
+  entityUniqueId: 'AUDIUS_SONG::Xl5oR'
+}
+🔗 Traitement plateforme boomplay: object {
+  country: 'FR',
+  url: 'https://www.boomplay.com/songs/47233114',
+  entityUniqueId: 'BOOMPLAY_SONG::47233114'
+}
+🔗 Traitement plateforme deezer: object {
+  country: 'FR',
+  url: 'https://www.deezer.com/track/859699',
+  entityUniqueId: 'DEEZER_SONG::859699'
+}
+🔗 Traitement plateforme appleMusic: object {
+  country: 'FR',
+  url: 'https://geo.music.apple.com/fr/album/_/298167813?i=298167819&mt=1&app=music&ls=1&at=1000lHKX&ct=api_http&itscg=30200&itsct=odsl_m',
+  nativeAppUriMobile: 'music://itunes.apple.com/fr/album/_/298167813?i=298167819&mt=1&app=music&ls=1&at=1000lHKX&ct=api_uri_m&itscg=30200&itsct=odsl_m',
+  nativeAppUriDesktop: 'itmss://itunes.apple.com/fr/album/_/298167813?i=298167819&mt=1&app=music&ls=1&at=1000lHKX&ct=api_uri_d&itscg=30200&itsct=odsl_m',
+  entityUniqueId: 'ITUNES_SONG::298167819'
+}
+🔗 Traitement plateforme itunes: object {
+  country: 'FR',
+  url: 'https://geo.music.apple.com/fr/album/_/298167813?i=298167819&mt=1&app=itunes&ls=1&at=1000lHKX&ct=api_http&itscg=30200&itsct=odsl_m',
+  nativeAppUriMobile: 'itmss://itunes.apple.com/fr/album/_/298167813?i=298167819&mt=1&app=itunes&ls=1&at=1000lHKX&ct=api_uri_m&itscg=30200&itsct=odsl_m',
+  nativeAppUriDesktop: 'itmss://itunes.apple.com/fr/album/_/298167813?i=298167819&mt=1&app=itunes&ls=1&at=1000lHKX&ct=api_uri_d&itscg=30200&itsct=odsl_m',
+  entityUniqueId: 'ITUNES_SONG::298167819'
+}
+🔗 Traitement plateforme napster: object {
+  country: 'FR',
+  url: 'https://play.napster.com/track/tra.48916351',
+  entityUniqueId: 'NAPSTER_SONG::tra.48916351'
+}
+🔗 Traitement plateforme pandora: object {
+  country: 'US',
+  url: 'https://www.pandora.com/TR:11724137',
+  entityUniqueId: 'PANDORA_SONG::TR:11724137'
+}
+🔗 Traitement plateforme soundcloud: object {
+  country: 'FR',
+  url: 'https://soundcloud.com/patrick-drummer/system-of-a-down-chop-suey',
+  entityUniqueId: 'SOUNDCLOUD_SONG::136841533'
+}
+🔗 Traitement plateforme tidal: object {
+  country: 'FR',
+  url: 'https://listen.tidal.com/track/17825556',
+  entityUniqueId: 'TIDAL_SONG::17825556'
+}
+🔗 Traitement plateforme yandex: object {
+  country: 'RU',
+  url: 'https://music.yandex.ru/track/2135768',
+  entityUniqueId: 'YANDEX_SONG::2135768'
+}
+🔗 Traitement plateforme youtube: object {
+  country: 'FR',
+  url: 'https://www.youtube.com/watch?v=CSvFpBOe8eY',
+  entityUniqueId: 'YOUTUBE_VIDEO::CSvFpBOe8eY'
+}
+🔗 Traitement plateforme youtubeMusic: object {
+  country: 'FR',
+  url: 'https://music.youtube.com/watch?v=CSvFpBOe8eY',
+  entityUniqueId: 'YOUTUBE_VIDEO::CSvFpBOe8eY'
+}
+🔗 Traitement plateforme spotify: object {
+  country: 'FR',
+  url: 'https://open.spotify.com/track/2DlHlPMa4M17kufBvI2lEN',
+  nativeAppUriDesktop: 'spotify:track:2DlHlPMa4M17kufBvI2lEN',
+  entityUniqueId: 'SPOTIFY_SONG::2DlHlPMa4M17kufBvI2lEN'
+}
+✅ Liens nettoyés: [
+  'Amazon Music',  'amazonStore',
+  'audiomack',     'audius',
+  'boomplay',      'Deezer',
+  'Apple Music',   'itunes',
+  'Napster',       'Pandora',
+  'SoundCloud',    'Tidal',
+  'Yandex Music',  'YouTube',
+  'YouTube Music', 'Spotify'
+]
+✅ Formatage réussi
+✅ Odesli: 16 plateformes trouvées
+✅ Backend: 16 plateformes récupérées
+[0mPOST /api/v1/smartlinks/fetch-platform-links [32m200[0m 965.011 ms - 4813[0m
+🔓 Auth: Bypass activé pour développement
+Backend: Récupération liens Odesli pour: https://open.spotify.com/intl-fr/track/5bKDKo9lhFvTQR517vQuSH (FR)
+📋 Type détecté: url
+🔍 Odesli: Recherche pour "https://open.spotify.com/intl-fr/track/5bKDKo9lhFvTQR517vQuSH" (FR)
+🔗 Odesli Request: GET https://api.song.link/v1-alpha.1/links?url=https%3A%2F%2Fopen.spotify.com%2Fintl-fr%2Ftrack%2F5bKDKo9lhFvTQR517vQuSH&userCountry=FR&songIfSingle=true
+📥 Odesli Response Status: 200
+🔄 Début formatage réponse...
+🔄 Formatage réponse Odesli: [
+  'entityUniqueId',
+  'userCountry',
+  'pageUrl',
+  'entitiesByUniqueId',
+  'linksByPlatform'
+]
+🎵 Entité trouvée: {
+  id: 'SPOTIFY_SONG::5bKDKo9lhFvTQR517vQuSH',
+  title: 'Money Pull Up',
+  artist: 'Blaiz Fayah, Maureen, Dj Glad'
+}
+🧹 Nettoyage liens plateformes: [
+  'amazonMusic',  'amazonStore',
+  'audiomack',    'anghami',
+  'deezer',       'appleMusic',
+  'itunes',       'napster',
+  'pandora',      'soundcloud',
+  'tidal',        'youtube',
+  'youtubeMusic', 'spotify'
+]
+🔗 Traitement plateforme amazonMusic: object {
+  country: 'FR',
+  url: 'https://music.amazon.com/albums/B0F799D6ZB?trackAsin=B0F78Y765V',
+  entityUniqueId: 'AMAZON_SONG::B0F78Y765V'
+}
+🔗 Traitement plateforme amazonStore: object {
+  country: 'US',
+  url: 'https://amazon.com/dp/B0F78Y765V',
+  entityUniqueId: 'AMAZON_SONG::B0F78Y765V'
+}
+🔗 Traitement plateforme audiomack: object {
+  country: 'FR',
+  url: 'https://audiomack.com/song/blaiz-fayah/money-pull-up',
+  entityUniqueId: 'AUDIOMACK_SONG::38067016'
+}
+🔗 Traitement plateforme anghami: object {
+  country: 'FR',
+  url: 'https://play.anghami.com/song/1191063296?refer=linktree',
+  entityUniqueId: 'ANGHAMI_SONG::1191063296'
+}
+🔗 Traitement plateforme deezer: object {
+  country: 'FR',
+  url: 'https://www.deezer.com/track/2990269451',
+  entityUniqueId: 'DEEZER_SONG::2990269451'
+}
+🔗 Traitement plateforme appleMusic: object {
+  country: 'FR',
+  url: 'https://geo.music.apple.com/fr/album/_/1768080353?i=1768080354&mt=1&app=music&ls=1&at=1000lHKX&ct=api_http&itscg=30200&itsct=odsl_m',
+  nativeAppUriMobile: 'music://itunes.apple.com/fr/album/_/1768080353?i=1768080354&mt=1&app=music&ls=1&at=1000lHKX&ct=api_uri_m&itscg=30200&itsct=odsl_m',
+  nativeAppUriDesktop: 'itmss://itunes.apple.com/fr/album/_/1768080353?i=1768080354&mt=1&app=music&ls=1&at=1000lHKX&ct=api_uri_d&itscg=30200&itsct=odsl_m',
+  entityUniqueId: 'ITUNES_SONG::1768080354'
+}
+🔗 Traitement plateforme itunes: object {
+  country: 'FR',
+  url: 'https://geo.music.apple.com/fr/album/_/1768080353?i=1768080354&mt=1&app=itunes&ls=1&at=1000lHKX&ct=api_http&itscg=30200&itsct=odsl_m',
+  nativeAppUriMobile: 'itmss://itunes.apple.com/fr/album/_/1768080353?i=1768080354&mt=1&app=itunes&ls=1&at=1000lHKX&ct=api_uri_m&itscg=30200&itsct=odsl_m',
+  nativeAppUriDesktop: 'itmss://itunes.apple.com/fr/album/_/1768080353?i=1768080354&mt=1&app=itunes&ls=1&at=1000lHKX&ct=api_uri_d&itscg=30200&itsct=odsl_m',
+  entityUniqueId: 'ITUNES_SONG::1768080354'
+}
+🔗 Traitement plateforme napster: object {
+  country: 'FR',
+  url: 'https://play.napster.com/track/tra.813082737',
+  entityUniqueId: 'NAPSTER_SONG::tra.813082737'
+}
+🔗 Traitement plateforme pandora: object {
+  country: 'US',
+  url: 'https://www.pandora.com/TR:144544308',
+  entityUniqueId: 'PANDORA_SONG::TR:144544308'
+}
+🔗 Traitement plateforme soundcloud: object {
+  country: 'FR',
+  url: 'https://soundcloud.com/sasha-grishaeva/blaiz-fayah-maureen-dj-glad',
+  entityUniqueId: 'SOUNDCLOUD_SONG::2000159327'
+}
+🔗 Traitement plateforme tidal: object {
+  country: 'FR',
+  url: 'https://listen.tidal.com/track/386724181',
+  entityUniqueId: 'TIDAL_SONG::386724181'
+}
+🔗 Traitement plateforme youtube: object {
+  country: 'FR',
+  url: 'https://www.youtube.com/watch?v=napM9rZUzmU',
+  entityUniqueId: 'YOUTUBE_VIDEO::napM9rZUzmU'
+}
+🔗 Traitement plateforme youtubeMusic: object {
+  country: 'FR',
+  url: 'https://music.youtube.com/watch?v=napM9rZUzmU',
+  entityUniqueId: 'YOUTUBE_VIDEO::napM9rZUzmU'
+}
+🔗 Traitement plateforme spotify: object {
+  country: 'FR',
+  url: 'https://open.spotify.com/track/5bKDKo9lhFvTQR517vQuSH',
+  nativeAppUriDesktop: 'spotify:track:5bKDKo9lhFvTQR517vQuSH',
+  entityUniqueId: 'SPOTIFY_SONG::5bKDKo9lhFvTQR517vQuSH'
+}
+✅ Liens nettoyés: [
+  'Amazon Music',  'amazonStore',
+  'audiomack',     'anghami',
+  'Deezer',        'Apple Music',
+  'itunes',        'Napster',
+  'Pandora',       'SoundCloud',
+  'Tidal',         'YouTube',
+  'YouTube Music', 'Spotify'
+]
+✅ Formatage réussi
+✅ Odesli: 14 plateformes trouvées
+✅ Backend: 14 plateformes récupérées
+[0mPOST /api/v1/smartlinks/fetch-platform-links [32m200[0m 3304.156 ms - 4411[0m
+🔓 Auth: Bypass activé pour développement
+[0mPOST /api/v1/smartlinks [32m201[0m 346.189 ms - 888[0m
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='money-pull-up-1', artistId='6869410ba9009d85d0f98de7'.
+[0mGET /api/v1/smartlinks/public/blaiz-fayah-maureen-dj-glad/money-pull-up-1 [32m200[0m 221.243 ms - 885[0m
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='money-pull-up-1', artistId='6869410ba9009d85d0f98de7'.
+[0mGET /api/v1/smartlinks/public/blaiz-fayah-maureen-dj-glad/money-pull-up-1 [32m200[0m 212.020 ms - 885[0m
+🔓 Auth: Bypass activé pour développement
+Backend: Récupération liens Odesli pour: https://open.spotify.com/intl-fr/track/1vcxF91pWs9uNwDROuiCPB (FR)
+📋 Type détecté: url
+🔍 Odesli: Recherche pour "https://open.spotify.com/intl-fr/track/1vcxF91pWs9uNwDROuiCPB" (FR)
+🔗 Odesli Request: GET https://api.song.link/v1-alpha.1/links?url=https%3A%2F%2Fopen.spotify.com%2Fintl-fr%2Ftrack%2F1vcxF91pWs9uNwDROuiCPB&userCountry=FR&songIfSingle=true
+📥 Odesli Response Status: 200
+🔄 Début formatage réponse...
+🔄 Formatage réponse Odesli: [
+  'entityUniqueId',
+  'userCountry',
+  'pageUrl',
+  'entitiesByUniqueId',
+  'linksByPlatform'
+]
+🎵 Entité trouvée: {
+  id: 'SPOTIFY_SONG::1vcxF91pWs9uNwDROuiCPB',
+  title: 'Savior',
+  artist: 'Rise Against'
+}
+🧹 Nettoyage liens plateformes: [
+  'amazonMusic', 'amazonStore',
+  'anghami',     'boomplay',
+  'deezer',      'appleMusic',
+  'itunes',      'napster',
+  'pandora',     'soundcloud',
+  'tidal',       'yandex',
+  'youtube',     'youtubeMusic',
+  'spotify'
+]
+🔗 Traitement plateforme amazonMusic: object {
+  country: 'FR',
+  url: 'https://music.amazon.com/albums/B00NKOUZZS?trackAsin=B00NKOV8E0',
+  entityUniqueId: 'AMAZON_SONG::B00NKOV8E0'
+}
+🔗 Traitement plateforme amazonStore: object {
+  country: 'US',
+  url: 'https://amazon.com/dp/B00NKOV8E0',
+  entityUniqueId: 'AMAZON_SONG::B00NKOV8E0'
+}
+🔗 Traitement plateforme anghami: object {
+  country: 'FR',
+  url: 'https://play.anghami.com/song/4375394?refer=linktree',
+  entityUniqueId: 'ANGHAMI_SONG::4375394'
+}
+🔗 Traitement plateforme boomplay: object {
+  country: 'FR',
+  url: 'https://www.boomplay.com/songs/2740810',
+  entityUniqueId: 'BOOMPLAY_SONG::2740810'
+}
+🔗 Traitement plateforme deezer: object {
+  country: 'FR',
+  url: 'https://www.deezer.com/track/7419123',
+  entityUniqueId: 'DEEZER_SONG::7419123'
+}
+🔗 Traitement plateforme appleMusic: object {
+  country: 'FR',
+  url: 'https://geo.music.apple.com/fr/album/_/1440856060?i=1440856412&mt=1&app=music&ls=1&at=1000lHKX&ct=api_http&itscg=30200&itsct=odsl_m',
+  nativeAppUriMobile: 'music://itunes.apple.com/fr/album/_/1440856060?i=1440856412&mt=1&app=music&ls=1&at=1000lHKX&ct=api_uri_m&itscg=30200&itsct=odsl_m',
+  nativeAppUriDesktop: 'itmss://itunes.apple.com/fr/album/_/1440856060?i=1440856412&mt=1&app=music&ls=1&at=1000lHKX&ct=api_uri_d&itscg=30200&itsct=odsl_m',
+  entityUniqueId: 'ITUNES_SONG::1440856412'
+}
+🔗 Traitement plateforme itunes: object {
+  country: 'FR',
+  url: 'https://geo.music.apple.com/fr/album/_/1440856060?i=1440856412&mt=1&app=itunes&ls=1&at=1000lHKX&ct=api_http&itscg=30200&itsct=odsl_m',
+  nativeAppUriMobile: 'itmss://itunes.apple.com/fr/album/_/1440856060?i=1440856412&mt=1&app=itunes&ls=1&at=1000lHKX&ct=api_uri_m&itscg=30200&itsct=odsl_m',
+  nativeAppUriDesktop: 'itmss://itunes.apple.com/fr/album/_/1440856060?i=1440856412&mt=1&app=itunes&ls=1&at=1000lHKX&ct=api_uri_d&itscg=30200&itsct=odsl_m',
+  entityUniqueId: 'ITUNES_SONG::1440856412'
+}
+🔗 Traitement plateforme napster: object {
+  country: 'FR',
+  url: 'https://play.napster.com/track/tra.162040716',
+  entityUniqueId: 'NAPSTER_SONG::tra.162040716'
+}
+🔗 Traitement plateforme pandora: object {
+  country: 'US',
+  url: 'https://www.pandora.com/TR:1236193',
+  entityUniqueId: 'PANDORA_SONG::TR:1236193'
+}
+🔗 Traitement plateforme soundcloud: object {
+  country: 'FR',
+  url: 'https://soundcloud.com/rise-against-official/savior',
+  entityUniqueId: 'SOUNDCLOUD_SONG::253186478'
+}
+🔗 Traitement plateforme tidal: object {
+  country: 'FR',
+  url: 'https://listen.tidal.com/track/35354658',
+  entityUniqueId: 'TIDAL_SONG::35354658'
+}
+🔗 Traitement plateforme yandex: object {
+  country: 'RU',
+  url: 'https://music.yandex.ru/track/85537',
+  entityUniqueId: 'YANDEX_SONG::85537'
+}
+🔗 Traitement plateforme youtube: object {
+  country: 'FR',
+  url: 'https://www.youtube.com/watch?v=e8X3ACToii0',
+  entityUniqueId: 'YOUTUBE_VIDEO::e8X3ACToii0'
+}
+🔗 Traitement plateforme youtubeMusic: object {
+  country: 'FR',
+  url: 'https://music.youtube.com/watch?v=e8X3ACToii0',
+  entityUniqueId: 'YOUTUBE_VIDEO::e8X3ACToii0'
+}
+🔗 Traitement plateforme spotify: object {
+  country: 'FR',
+  url: 'https://open.spotify.com/track/1vcxF91pWs9uNwDROuiCPB',
+  nativeAppUriDesktop: 'spotify:track:1vcxF91pWs9uNwDROuiCPB',
+  entityUniqueId: 'SPOTIFY_SONG::1vcxF91pWs9uNwDROuiCPB'
+}
+✅ Liens nettoyés: [
+  'Amazon Music', 'amazonStore',
+  'anghami',      'boomplay',
+  'Deezer',       'Apple Music',
+  'itunes',       'Napster',
+  'Pandora',      'SoundCloud',
+  'Tidal',        'Yandex Music',
+  'YouTube',      'YouTube Music',
+  'Spotify'
+]
+✅ Formatage réussi
+✅ Odesli: 15 plateformes trouvées
+✅ Backend: 15 plateformes récupérées
+[0mPOST /api/v1/smartlinks/fetch-platform-links [32m200[0m 791.850 ms - 4519[0m
+🔓 Auth: Bypass activé pour développement
+🎵 Création automatique de l'artiste: Rise Against
+[0mPOST /api/v1/smartlinks [32m201[0m 313.272 ms - 903[0m
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistId='686ac1824cdb7eabd3d40c92'.
+[0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 206.294 ms - 900[0m
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistId='686ac1824cdb7eabd3d40c92'.
+[0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 204.506 ms - 900[0m
+[0mGET /api/v1/smartlinks/public/rise-against/savior [0m-[0m - ms - -[0m
+[0mGET /api/v1/smartlinks/public/rise-against/savior [0m-[0m - ms - -[0m
+logClick Middleware: Erreur lors du tracking de la vue pour trackSlug='savior', artistSlug='rise-against': MongoServerSelectionError: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+    at Topology.selectServer (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/sdam/topology.js:321:38)
+    at async tryOperation (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/operations/execute_operation.js:145:18)
+    at async executeOperation (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/operations/execute_operation.js:75:16)
+    at async FindCursor._initialize (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/find_cursor.js:61:26)
+    at async FindCursor.cursorInit (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:633:27)
+    at async FindCursor.fetchBatch (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:667:13)
+    at async FindCursor.next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:347:17)
+    at async Collection.findOne (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/collection.js:277:21)
+    at async model.Query._findOne (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongoose/lib/query.js:2661:15)
+    at async model.Query.exec (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongoose/lib/query.js:4548:63) {
+  errorLabelSet: Set(0) {},
+  reason: TopologyDescription {
+    type: 'Single',
+    servers: Map(1) { 'yamanote.proxy.rlwy.net:25766' => [ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  [cause]: MongoNetworkError: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+      at Socket.<anonymous> (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cmap/connect.js:285:44)
+      at Object.onceWrapper (node:events:639:26)
+      at Socket.emit (node:events:524:28)
+      at emitErrorNT (node:internal/streams/destroy:169:8)
+      at emitErrorCloseNT (node:internal/streams/destroy:128:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+    errorLabelSet: Set(1) { 'ResetPool' },
+    beforeHandshake: false,
+    [cause]: Error: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+        at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26) {
+      errno: -3008,
+      code: 'ENOTFOUND',
+      syscall: 'getaddrinfo',
+      hostname: 'yamanote.proxy.rlwy.net'
+    }
+  }
+}
+logClick Middleware: Erreur lors du tracking de la vue pour trackSlug='savior', artistSlug='rise-against': MongoServerSelectionError: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+    at Topology.selectServer (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/sdam/topology.js:321:38)
+    at runNextTicks (node:internal/process/task_queues:60:5)
+    at listOnTimeout (node:internal/timers:545:9)
+    at process.processTimers (node:internal/timers:519:7)
+    at async tryOperation (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/operations/execute_operation.js:145:18)
+    at async executeOperation (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/operations/execute_operation.js:75:16)
+    at async FindCursor._initialize (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/find_cursor.js:61:26)
+    at async FindCursor.cursorInit (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:633:27)
+    at async FindCursor.fetchBatch (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:667:13)
+    at async FindCursor.next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:347:17) {
+  errorLabelSet: Set(0) {},
+  reason: TopologyDescription {
+    type: 'Single',
+    servers: Map(1) { 'yamanote.proxy.rlwy.net:25766' => [ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  [cause]: MongoNetworkError: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+      at Socket.<anonymous> (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cmap/connect.js:285:44)
+      at Object.onceWrapper (node:events:639:26)
+      at Socket.emit (node:events:524:28)
+      at emitErrorNT (node:internal/streams/destroy:169:8)
+      at emitErrorCloseNT (node:internal/streams/destroy:128:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+    errorLabelSet: Set(1) { 'ResetPool' },
+    beforeHandshake: false,
+    [cause]: Error: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+        at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26) {
+      errno: -3008,
+      code: 'ENOTFOUND',
+      syscall: 'getaddrinfo',
+      hostname: 'yamanote.proxy.rlwy.net'
+    }
+  }
+}
+--- GESTIONNAIRE D'ERREURS GLOBAL ---
+Message: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+Erreur Complète: MongoServerSelectionError: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+    at Topology.selectServer (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/sdam/topology.js:321:38)
+    at async tryOperation (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/operations/execute_operation.js:145:18)
+    at async executeOperation (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/operations/execute_operation.js:75:16)
+    at async FindCursor._initialize (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/find_cursor.js:61:26)
+    at async FindCursor.cursorInit (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:633:27)
+    at async FindCursor.fetchBatch (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:667:13)
+    at async FindCursor.next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:347:17)
+    at async Collection.findOne (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/collection.js:277:21)
+    at async model.Query._findOne (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongoose/lib/query.js:2661:15)
+    at async model.Query.exec (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongoose/lib/query.js:4548:63) {
+  errorLabelSet: Set(0) {},
+  reason: TopologyDescription {
+    type: 'Single',
+    servers: Map(1) { 'yamanote.proxy.rlwy.net:25766' => [ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  [cause]: MongoNetworkError: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+      at Socket.<anonymous> (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cmap/connect.js:285:44)
+      at Object.onceWrapper (node:events:639:26)
+      at Socket.emit (node:events:524:28)
+      at emitErrorNT (node:internal/streams/destroy:169:8)
+      at emitErrorCloseNT (node:internal/streams/destroy:128:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+    errorLabelSet: Set(1) { 'ResetPool' },
+    beforeHandshake: false,
+    [cause]: Error: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+        at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26) {
+      errno: -3008,
+      code: 'ENOTFOUND',
+      syscall: 'getaddrinfo',
+      hostname: 'yamanote.proxy.rlwy.net'
+    }
+  }
+}
+Stack: MongoServerSelectionError: getaddrinfo ENOTFOUND yamanote.proxy.rlwy.net
+    at Topology.selectServer (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/sdam/topology.js:321:38)
+    at async tryOperation (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/operations/execute_operation.js:145:18)
+    at async executeOperation (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/operations/execute_operation.js:75:16)
+    at async FindCursor._initialize (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/find_cursor.js:61:26)
+    at async FindCursor.cursorInit (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:633:27)
+    at async FindCursor.fetchBatch (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:667:13)
+    at async FindCursor.next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/cursor/abstract_cursor.js:347:17)
+    at async Collection.findOne (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongodb/lib/collection.js:277:21)
+    at async model.Query._findOne (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongoose/lib/query.js:2661:15)
+    at async model.Query.exec (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/mongoose/lib/query.js:4548:63)
+------------------------------------
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistId='686ac1824cdb7eabd3d40c92'.
+[0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 406.492 ms - 900[0m
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistId='686ac1824cdb7eabd3d40c92'.
+[0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 208.384 ms - 900[0m
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistId='686ac1824cdb7eabd3d40c92'.
+[0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 201.828 ms - 900[0m
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistId='686ac1824cdb7eabd3d40c92'.
+[0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 196.264 ms - 900[0m
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistId='686ac1824cdb7eabd3d40c92'.
+[0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 527.937 ms - 900[0m
+logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistId='686ac1824cdb7eabd3d40c92'.
+[0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 204.599 ms - 900[0m

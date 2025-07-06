@@ -28,6 +28,7 @@ const artistRoutes = require('../routes/artists.routes');
 const smartlinkRoutes = require('../routes/smartLinkRoutes');
 const uploadRoutes = require('../routes/uploadRoutes');
 const wordpressRoutes = require('../routes/wordpress.routes');
+const analyticsRoutes = require('../routes/analytics');
 // Ajoutez d'autres routeurs ici selon votre projet
 // const userRoutes = require('../routes/user.routes.js');
 
@@ -51,15 +52,36 @@ const connectDB = async () => {
 connectDB();
 
 // --- Middlewares ---
-app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:3000',
-    'http://localhost:3001',
-    'http://192.168.1.236:3000',
-    'http://192.168.1.236:3001'
-  ],
-  credentials: true
-}));
+// Configuration CORS complète pour développement
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || 'http://localhost:3000');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+} else {
+  app.use(cors({
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'http://192.168.1.236:3000',
+      'http://192.168.1.236:3001',
+      'http://192.168.1.236:3002'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    optionsSuccessStatus: 200
+  }));
+}
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -78,6 +100,7 @@ app.use('/api/v1/wordpress', wordpressRoutes);
 app.use('/api/wordpress', wordpressRoutes); // ⭐ Ajoutez cette ligne
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/wordpress', wordpressRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
 app.use("/api/v1/reviews", require("../routes/reviews.routes"));
 app.use("/api/simulator", require("../routes/simulator.routes"));
 

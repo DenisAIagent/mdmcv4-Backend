@@ -1,0 +1,49 @@
+# 🚀 Dockerfile Production - Backend Node.js
+# Image optimisée pour la production
+
+FROM node:18-alpine AS production
+
+# Mettre à jour les packages et installer les dépendances système
+RUN apk update && apk add --no-cache \
+    curl \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
+
+# Créer un utilisateur non-root pour la sécurité
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S mdmc -u 1001
+
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer uniquement les dépendances de production
+RUN npm ci --only=production && npm cache clean --force
+
+# Copier le code source
+COPY . .
+
+# Changer la propriété des fichiers
+RUN chown -R mdmc:nodejs /app
+
+# Basculer vers l'utilisateur non-root
+USER mdmc
+
+# Exposer le port
+EXPOSE 5001
+
+# Variables d'environnement
+ENV NODE_ENV=production
+ENV PORT=5001
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:5001/api/v1/health || exit 1
+
+# Utiliser dumb-init pour une gestion correcte des signaux
+ENTRYPOINT ["dumb-init", "--"]
+
+# Démarrer l'application
+CMD ["node", "src/app.js"]

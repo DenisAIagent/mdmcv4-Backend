@@ -41,6 +41,10 @@ const smartLinkSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
+    previewAudioUrl: {
+      type: String,
+      trim: true
+    },
     description: {
       type: String,
       trim: true,
@@ -74,7 +78,7 @@ const smartLinkSchema = new mongoose.Schema(
     },
     isPublished: {
       type: Boolean,
-      default: false,
+      default: true, // 🚀 Publié par défaut pour les tests
       index: true
     },
     userId: {
