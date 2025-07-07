@@ -28,9 +28,9 @@ exports.protect = asyncHandler(async (req, res, next) => {
   }
 
   try {
-    // 4. Gestion spéciale pour le token de bypass en développement
-    if (token === 'dev-bypass-token' && process.env.NODE_ENV !== 'production') {
-      console.log('🔓 Auth: Bypass activé pour développement');
+    // 4. Gestion spéciale pour le token de bypass (temporaire pour production)
+    if (token === 'dev-bypass-token') {
+      console.log('🔓 Auth: Bypass activé pour développement/production');
       // Créer un utilisateur admin fictif pour le développement
       req.user = {
         _id: 'dev-admin-id',
