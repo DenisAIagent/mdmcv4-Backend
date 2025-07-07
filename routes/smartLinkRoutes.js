@@ -93,6 +93,11 @@ const createSmartLinkValidationRules = [
     .optional()
     .trim()
     .isLength({ max: 500 }),
+  body("customSubtitle", "Le sous-titre personnalisé ne peut pas dépasser 40 caractères")
+    .optional()
+    .trim()
+    .isLength({ max: 40 }),
+  body("useDescriptionAsSubtitle").optional().isBoolean().withMessage("useDescriptionAsSubtitle doit être un booléen"),
   ...platformLinksValidation,
   ...trackingIdsValidation,
   body("isPublished").optional().isBoolean().withMessage("isPublished doit être un booléen")
@@ -117,6 +122,11 @@ const updateSmartLinkValidationRules = [
     .optional()
     .trim()
     .isLength({ max: 500 }),
+  body("customSubtitle", "Le sous-titre personnalisé ne peut pas dépasser 40 caractères")
+    .optional()
+    .trim()
+    .isLength({ max: 40 }),
+  body("useDescriptionAsSubtitle").optional().isBoolean().withMessage("useDescriptionAsSubtitle doit être un booléen"),
   ...platformLinksValidation,
   ...trackingIdsValidation,
   body("isPublished").optional().isBoolean().withMessage("isPublished doit être un booléen")

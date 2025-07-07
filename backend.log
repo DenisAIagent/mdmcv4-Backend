@@ -807,3 +807,84 @@ MongoDB Connecté: yamanote.proxy.rlwy.net
 }
 Serveur démarré en mode development sur le port 5001
 MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T14:32:17.618Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T14:32:17.620Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T14:33:00.775Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T14:33:00.776Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T14:33:12.125Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T14:33:12.127Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T14:33:36.933Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T14:33:36.935Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T14:35:15.112Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T14:35:15.114Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T14:53:59.286Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T14:53:59.288Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T14:54:35.087Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T14:54:35.089Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T14:56:20.519Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T14:56:20.521Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T14:56:35.203Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T14:56:35.205Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net

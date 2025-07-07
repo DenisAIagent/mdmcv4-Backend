@@ -50,6 +50,16 @@ const smartLinkSchema = new mongoose.Schema(
       trim: true,
       maxlength: [500, "La description ne peut pas dépasser 500 caractères."]
     },
+    customSubtitle: {
+      type: String,
+      trim: true,
+      default: "Choose music service",
+      maxlength: [40, "Le sous-titre ne peut pas dépasser 40 caractères."]
+    },
+    useDescriptionAsSubtitle: {
+      type: Boolean,
+      default: false
+    },
     platformLinks: {
       type: [platformLinkSchema],
       validate: [
