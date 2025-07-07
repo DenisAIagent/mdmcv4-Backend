@@ -76,6 +76,10 @@ const smartLinkSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    platformClickStats: { // Statistiques détaillées par plateforme
+      type: Object,
+      default: {}
+    },
     isPublished: {
       type: Boolean,
       default: true, // 🚀 Publié par défaut pour les tests

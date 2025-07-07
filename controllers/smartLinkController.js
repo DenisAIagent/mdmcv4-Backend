@@ -279,15 +279,37 @@ exports.logPlatformClick = asyncHandler(async (req, res, next) => {
     if (!smartLink) {
         return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${req.params.id}`, 404));
     }
+    
+    // Incrémenter le total
     smartLink.platformClickCount = (smartLink.platformClickCount || 0) + 1;
-    // Optionnel: log détaillé par plateforme
-    // const { platformName } = req.body;
-    // if (platformName && smartLink.platformClicksDetailed) {
-    //   const currentPlatformClicks = smartLink.platformClicksDetailed.get(platformName) || 0;
-    //   smartLink.platformClicksDetailed.set(platformName, currentPlatformClicks + 1);
-    // }
+    
+    // Incrémenter le détail par plateforme
+    const { platformName } = req.body;
+    if (platformName) {
+        if (!smartLink.platformClickStats) {
+            smartLink.platformClickStats = {};
+        }
+        const currentPlatformClicks = smartLink.platformClickStats[platformName] || 0;
+        smartLink.platformClickStats[platformName] = currentPlatformClicks + 1;
+        console.log(`📊 Clic enregistré: ${platformName} = ${currentPlatformClicks + 1} pour SmartLink ${smartLink.trackTitle}`);
+    }
+    
     await smartLink.save({ validateBeforeSave: false });
-    res.status(200).json({ success: true, message: "Clic sur plateforme enregistré." });
+    
+    // Récupération des clics de plateforme depuis l'Object
+    const platformClicks = platformName ? smartLink.platformClickStats[platformName] : null;
+    
+    console.log(`✅ Clic ${platformName} enregistré: Total=${smartLink.platformClickCount}, Platform=${platformClicks}`);
+    
+    res.status(200).json({ 
+        success: true, 
+        message: "Clic sur plateforme enregistré.",
+        data: {
+            platform: platformName,
+            totalClicks: smartLink.platformClickCount,
+            platformClicks: platformClicks
+        }
+    });
 });
 
 // @desc    Récupérer les liens de plateformes depuis une URL/ISRC source via Odesli

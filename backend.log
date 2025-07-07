@@ -573,3 +573,210 @@ logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistI
 [0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 527.937 ms - 900[0m
 logClick Middleware: Vue enregistrée pour SmartLink trackSlug='savior', artistId='686ac1824cdb7eabd3d40c92'.
 [0mGET /api/v1/smartlinks/public/rise-against/savior [32m200[0m 204.599 ms - 900[0m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T10:54:15.141Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T10:54:15.142Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T10:54:29.026Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T10:54:29.028Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T10:54:37.432Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T10:54:37.434Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T11:26:31.250Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T11:26:31.252Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T11:38:42.190Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T11:38:42.192Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T11:39:47.755Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T11:39:47.756Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+--- GESTIONNAIRE D'ERREURS GLOBAL ---
+Message: SmartLink non trouvé avec l'ID 686ac1824cdb7eabd3d40c92
+Erreur Complète: ErrorResponse: SmartLink non trouvé avec l'ID 686ac1824cdb7eabd3d40c92
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/controllers/smartLinkController.js:280:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 404
+}
+Stack: Error: SmartLink non trouvé avec l'ID 686ac1824cdb7eabd3d40c92
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/controllers/smartLinkController.js:280:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+------------------------------------
+[0mPOST /api/v1/smartlinks/686ac1824cdb7eabd3d40c92/log-platform-click [33m404[0m 62.583 ms - 84[0m
+--- GESTIONNAIRE D'ERREURS GLOBAL ---
+Message: Non autorisé à accéder à cette route (token manquant)
+Erreur Complète: ErrorResponse: Non autorisé à accéder à cette route (token manquant)
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/middleware/auth.js:27:17
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/middleware/asyncHandler.js:9:14
+    at Layer.handle [as handle_request] (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:149:13)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7) {
+  statusCode: 401
+}
+Stack: Error: Non autorisé à accéder à cette route (token manquant)
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/middleware/auth.js:27:17
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/middleware/asyncHandler.js:9:14
+    at Layer.handle [as handle_request] (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:149:13)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:145:7)
+------------------------------------
+[0mGET /api/v1/smartlinks [33m401[0m 1.209 ms - 85[0m
+[0mGET /api/v1 [32m200[0m 0.759 ms - 274[0m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T12:11:45.183Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T12:11:45.185Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T12:12:28.610Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T12:12:28.612Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T12:13:00.957Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T12:13:00.959Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T12:13:11.825Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T12:13:11.826Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T12:13:18.819Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T12:13:18.820Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+📊 Clic enregistré: YouTube Music = 1 pour SmartLink Savior
+✅ Clic YouTube Music enregistré: Total=11, Platform=1
+[0mPOST /api/v1/smartlinks/686ac1824cdb7eabd3d40c95/log-platform-click [32m200[0m 120.194 ms - 133[0m
+📊 Clic enregistré: YouTube Music = 2 pour SmartLink Savior
+✅ Clic YouTube Music enregistré: Total=12, Platform=2
+[0mPOST /api/v1/smartlinks/686ac1824cdb7eabd3d40c95/log-platform-click [32m200[0m 94.841 ms - 133[0m
+[0mGET /api/v1/analytics/smartlinks/686ac1824cdb7eabd3d40c95 [33m404[0m 0.991 ms - 191[0m
+🔍 Analytics - Type de platformClickStats: object
+🔍 Analytics - platformClickStats: { 'YouTube Music': 1 }
+📊 Traitement en tant que Object JavaScript
+📊 Analytics - platformStats générées: [
+  {
+    platform: 'YouTube Music',
+    platformName: 'YouTube Music',
+    clicks: 1
+  }
+]
+[0mGET /api/v1/analytics/smartlink/686ac1824cdb7eabd3d40c95 [32m200[0m 97.373 ms - 457[0m
+📊 Clic enregistré: Spotify = 1 pour SmartLink Savior
+✅ Clic Spotify enregistré: Total=13, Platform=1
+[0mPOST /api/v1/smartlinks/686ac1824cdb7eabd3d40c95/log-platform-click [32m200[0m 93.853 ms - 127[0m
+📊 Clic enregistré: Deezer = 1 pour SmartLink Savior
+✅ Clic Deezer enregistré: Total=14, Platform=1
+[0mPOST /api/v1/smartlinks/686ac1824cdb7eabd3d40c95/log-platform-click [32m200[0m 116.582 ms - 126[0m
+🔍 Analytics - Type de platformClickStats: object
+🔍 Analytics - platformClickStats: { 'YouTube Music': 1 }
+📊 Traitement en tant que Object JavaScript
+📊 Analytics - platformStats générées: [
+  {
+    platform: 'YouTube Music',
+    platformName: 'YouTube Music',
+    clicks: 1
+  }
+]
+[0mGET /api/v1/analytics/smartlink/686ac1824cdb7eabd3d40c95 [32m200[0m 92.213 ms - 458[0m
+--- GESTIONNAIRE D'ERREURS GLOBAL ---
+Message: Non autorisé à accéder à cette route (token manquant)
+Erreur Complète: ErrorResponse: Non autorisé à accéder à cette route (token manquant)
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/middleware/auth.js:27:17
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/middleware/asyncHandler.js:9:14
+    at Layer.handle [as handle_request] (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/index.js:280:10)
+    at Function.handle (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/index.js:175:3) {
+  statusCode: 401
+}
+Stack: Error: Non autorisé à accéder à cette route (token manquant)
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/middleware/auth.js:27:17
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/middleware/asyncHandler.js:9:14
+    at Layer.handle [as handle_request] (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/index.js:280:10)
+    at Function.handle (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/index.js:175:3)
+------------------------------------
+[0mPOST /api/v1/smartlinks/fetch-platform-links [33m401[0m 1.671 ms - 85[0m
