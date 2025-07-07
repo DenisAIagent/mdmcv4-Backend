@@ -155,31 +155,33 @@ exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
         // Récupérer le document brut pour vérifier les données directement de MongoDB
         const rawSmartLink = await SmartLink.findById(id).lean();
         console.log('🔍 Analytics - Raw platformClickStats:', rawSmartLink.platformClickStats);
+        console.log('🔍 Analytics - Raw platformClickStats keys:', Object.keys(rawSmartLink.platformClickStats || {}));
         
-        // Traitement avec les données brutes
+        // Traitement avec les données brutes - SANS FILTRAGE pour debug
         const rawStats = rawSmartLink.platformClickStats || {};
         for (const [platform, clicks] of Object.entries(rawStats)) {
-          if (clicks > 0) {
-            const platformName = {
-              spotify: 'Spotify',
-              deezer: 'Deezer',
-              'apple music': 'Apple Music',
-              applemusic: 'Apple Music',
-              'youtube music': 'YouTube Music',
-              youtubemusic: 'YouTube Music',
-              soundcloud: 'SoundCloud',
-              tidal: 'Tidal',
-              'amazon music': 'Amazon Music',
-              amazonmusic: 'Amazon Music',
-              boomplay: 'Boomplay'
-            }[platform.toLowerCase()] || platform;
+          console.log(`🔍 Platform found: "${platform}" with ${clicks} clicks`);
+          
+          // Ajouter TOUTES les plateformes, même avec 0 clics pour debug
+          const platformName = {
+            spotify: 'Spotify',
+            deezer: 'Deezer',
+            'apple music': 'Apple Music',
+            applemusic: 'Apple Music',
+            'youtube music': 'YouTube Music',
+            youtubemusic: 'YouTube Music',
+            soundcloud: 'SoundCloud',
+            tidal: 'Tidal',
+            'amazon music': 'Amazon Music',
+            amazonmusic: 'Amazon Music',
+            boomplay: 'Boomplay'
+          }[platform.toLowerCase()] || platform;
 
-            platformStats.push({
-              platform,
-              platformName,
-              clicks: clicks || 0
-            });
-          }
+          platformStats.push({
+            platform,
+            platformName,
+            clicks: clicks || 0
+          });
         }
       }
     }
