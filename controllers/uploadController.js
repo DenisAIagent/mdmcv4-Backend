@@ -77,3 +77,70 @@ exports.uploadImage = asyncHandler(async (req, res, next) => {
   // --- Fin de la logique Cloudinary ---
 
 }); // Fin de exports.uploadImage
+
+/**
+ * @desc    Téléverser un fichier audio vers Cloudinary
+ * @route   POST /api/v1/upload/audio
+ * @access  Private (Admin)
+ */
+exports.uploadAudio = asyncHandler(async (req, res, next) => {
+  // Vérifier si un fichier est présent dans la requête
+  if (!req.file) {
+    return next(new ErrorResponse("Veuillez télécharger un fichier audio.", 400));
+  }
+
+  // Vérifier que la configuration Cloudinary est bien chargée
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error("Configuration Cloudinary incomplète. Vérifiez les variables d'environnement.");
+      return next(new ErrorResponse("Erreur de configuration serveur pour l'upload.", 500));
+  }
+
+  // Le buffer du fichier est dans req.file.buffer grâce à multer.memoryStorage()
+  const fileBuffer = req.file.buffer;
+
+  // --- Logique d'upload vers Cloudinary via un stream ---
+  const uploadPromise = new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "smartlink_audio", // Nom du dossier dans Cloudinary
+        resource_type: "video", // Cloudinary utilise "video" pour les fichiers audio
+        format: "mp3" // Conversion automatique en MP3
+      },
+      (error, result) => {
+        if (error) {
+          console.error('Erreur Cloudinary:', error);
+          return reject(new ErrorResponse(`Erreur lors de l'upload vers Cloudinary: ${error.message}`, 500));
+        }
+        resolve(result);
+      }
+    );
+    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
+  });
+
+  try {
+    // Attendre que la promesse d'upload se termine
+    const uploadResult = await uploadPromise;
+
+    // Vérifier la réponse de Cloudinary
+    if (!uploadResult || !uploadResult.secure_url) {
+        console.error('Réponse invalide de Cloudinary:', uploadResult);
+        return next(new ErrorResponse("Réponse invalide reçue de Cloudinary après l'upload.", 500));
+    }
+
+    console.log(`Audio téléversé sur Cloudinary : ${uploadResult.secure_url}`);
+
+    // Renvoyer la réponse succès avec l'URL sécurisée
+    res.status(200).json({
+      success: true,
+      data: { 
+        audioUrl: uploadResult.secure_url,
+        duration: uploadResult.duration || null,
+        format: uploadResult.format
+      },
+    });
+
+  } catch (err) {
+    // Gérer les erreurs
+    next(err);
+  }
+});
