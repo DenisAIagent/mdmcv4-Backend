@@ -123,6 +123,7 @@ exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
     
     console.log('🔍 Analytics - Type de platformClickStats:', typeof smartLink.platformClickStats);
     console.log('🔍 Analytics - platformClickStats:', smartLink.platformClickStats);
+    console.log('🔍 Analytics - platformClickStats constructor:', smartLink.platformClickStats?.constructor?.name);
     
     if (smartLink.platformClickStats) {
       // Vérifier si c'est une Map MongoDB
@@ -148,19 +149,28 @@ exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
             });
           }
         }
-      } else if (typeof smartLink.platformClickStats === 'object') {
+      } else if (typeof smartLink.platformClickStats === 'object' && smartLink.platformClickStats !== null) {
         console.log('📊 Traitement en tant que Object JavaScript');
-        // Traitement en tant qu'objet classique
-        for (const [platform, clicks] of Object.entries(smartLink.platformClickStats)) {
+        
+        // Récupérer le document brut pour vérifier les données directement de MongoDB
+        const rawSmartLink = await SmartLink.findById(id).lean();
+        console.log('🔍 Analytics - Raw platformClickStats:', rawSmartLink.platformClickStats);
+        
+        // Traitement avec les données brutes
+        const rawStats = rawSmartLink.platformClickStats || {};
+        for (const [platform, clicks] of Object.entries(rawStats)) {
           if (clicks > 0) {
             const platformName = {
               spotify: 'Spotify',
               deezer: 'Deezer',
-              appleMusic: 'Apple Music',
-              youtubeMusic: 'YouTube Music',
+              'apple music': 'Apple Music',
+              applemusic: 'Apple Music',
+              'youtube music': 'YouTube Music',
+              youtubemusic: 'YouTube Music',
               soundcloud: 'SoundCloud',
               tidal: 'Tidal',
-              amazonMusic: 'Amazon Music',
+              'amazon music': 'Amazon Music',
+              amazonmusic: 'Amazon Music',
               boomplay: 'Boomplay'
             }[platform.toLowerCase()] || platform;
 
