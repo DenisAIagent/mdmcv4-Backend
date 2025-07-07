@@ -1,9 +1,9 @@
 // backend/controllers/analyticsController.js
-const URLTracking = require(\'../models/URLTracking\');
-const SmartLink = require(\'../models/SmartLink\');
-const Artist = require(\'../models/Artist\');
-const asyncHandler = require(\'../middleware/asyncHandler\');
-const ErrorResponse = require(\'../utils/errorResponse\');
+const URLTracking = require('../models/URLTracking');
+const SmartLink = require('../models/SmartLink');
+const Artist = require('../models/Artist');
+const asyncHandler = require('../middleware/asyncHandler');
+const ErrorResponse = require('../utils/errorResponse');
 
 // @desc    Enregistrer un clic sur une URL/plateforme
 // @route   POST /api/v1/analytics/click
@@ -17,20 +17,20 @@ exports.trackClick = asyncHandler(async (req, res, next) => {
     smartlink_id = null,
     artist_id = null,
     position = null,
-    orderSource = \'default\',
+    orderSource = 'default',
     abTestVariant = null,
     destinationUrl = null
   } = req.body;
 
   // Validation des données requises
   if (!url) {
-    return next(new ErrorResponse(\'URL requise pour le tracking\', 400));
+    return next(new ErrorResponse('URL requise pour le tracking', 400));
   }
 
   try {
-    // Récupérer l\'IP et les données de géolocalisation
+    // Récupérer l'IP et les données de géolocalisation
     const ipAddress = req.ip || req.connection.remoteAddress;
-    const userAgent = req.headers[\'user-agent\'];
+    const userAgent = req.headers['user-agent'];
     const referrer = req.headers.referer || req.headers.referrer;
 
     // Chercher un enregistrement existant avec les mêmes critères
@@ -38,9 +38,9 @@ exports.trackClick = asyncHandler(async (req, res, next) => {
       smartLinkId: smartlink_id,
       url: url,
       platform: platform,
-      \'utmParams.utm_source\': utm_params.utm_source,
-      \'utmParams.utm_medium\': utm_params.utm_medium,
-      \'clickData.userAgent\': userAgent,
+      'utmParams.utm_source': utm_params.utm_source,
+      'utmParams.utm_medium': utm_params.utm_medium,
+      'clickData.userAgent': userAgent,
       createdAt: {
         $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Dernières 24h
       }
@@ -54,7 +54,7 @@ exports.trackClick = asyncHandler(async (req, res, next) => {
       
       res.status(200).json({
         success: true,
-        message: \'Clic incrémenté\',
+        message: 'Clic incrémenté',
         data: existingTracking
       });
     } else {
@@ -65,8 +65,8 @@ exports.trackClick = asyncHandler(async (req, res, next) => {
         url,
         platform,
         utmParams: {
-          utm_source: utm_params.utm_source || \'direct\',
-          utm_medium: utm_params.utm_medium || \'link\',
+          utm_source: utm_params.utm_source || 'direct',
+          utm_medium: utm_params.utm_medium || 'link',
           utm_campaign: utm_params.utm_campaign,
           utm_term: utm_params.utm_term,
           utm_content: utm_params.utm_content
@@ -74,7 +74,7 @@ exports.trackClick = asyncHandler(async (req, res, next) => {
         mdmcParams: {
           mdmc_id: utm_params.mdmc_id,
           mdmc_timestamp: utm_params.mdmc_timestamp,
-          mdmc_version: utm_params.mdmc_version || \'2.0\'
+          mdmc_version: utm_params.mdmc_version || '2.0'
         },
         clickData: {
           userAgent,
@@ -96,31 +96,31 @@ exports.trackClick = asyncHandler(async (req, res, next) => {
 
       res.status(201).json({
         success: true,
-        message: \'Clic enregistré\',
+        message: 'Clic enregistré',
         data: urlTracking
       });
     }
   } catch (error) {
-    console.error(\'Erreur tracking analytics:\', error);
-    return next(new ErrorResponse(\'Erreur lors de l\\\'enregistrement du clic\', 500));
+    console.error('Erreur tracking analytics:', error);
+    return next(new ErrorResponse('Erreur lors de l\'enregistrement du clic', 500));
   }
 });
 
-// @desc    Récupérer les statistiques d\'un SmartLink
+// @desc    Récupérer les statistiques d'un SmartLink
 // @route   GET /api/v1/analytics/smartlink/:id
 // @access  Private (Admin)
 exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
-  const smartLink = await SmartLink.findById(id).populate(\'artistId\');
+  const smartLink = await SmartLink.findById(id).populate('artistId');
   if (!smartLink) {
-    return next(new ErrorResponse(`SmartLink non trouvé avec l\'ID ${id}`, 404));
+    return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${id}`, 404));
   }
 
   // 🔧 Migration automatique des données Map vers Object si nécessaire
   let needsSave = false;
   if (smartLink.platformClickStats && smartLink.platformClickStats instanceof Map) {
-    console.log(\'🔄 Migration Map vers Object détectée pour SmartLink\', id);
+    console.log('🔄 Migration Map vers Object détectée pour SmartLink', id);
     const mapData = {};
     for (const [key, value] of smartLink.platformClickStats.entries()) {
       mapData[key] = value;
@@ -131,32 +131,32 @@ exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
   
   if (needsSave) {
     await smartLink.save({ validateBeforeSave: false });
-    console.log(\'✅ Migration terminée pour SmartLink\', id);
+    console.log('✅ Migration terminée pour SmartLink', id);
   }
 
   try {
     // Statistiques par plateforme depuis platformClickStats (MongoDB Map)
     const platformStats = [];
     
-    console.log(\'🔍 Analytics - Type de platformClickStats:\', typeof smartLink.platformClickStats);
-    console.log(\'🔍 Analytics - platformClickStats:\', smartLink.platformClickStats);
-    console.log(\'🔍 Analytics - platformClickStats constructor:\', smartLink.platformClickStats?.constructor?.name);
+    console.log('🔍 Analytics - Type de platformClickStats:', typeof smartLink.platformClickStats);
+    console.log('🔍 Analytics - platformClickStats:', smartLink.platformClickStats);
+    console.log('🔍 Analytics - platformClickStats constructor:', smartLink.platformClickStats?.constructor?.name);
     
-    if (smartLink.platformClickStats && typeof smartLink.platformClickStats === \'object\') {
-      // Vérifier si c\'est une Map MongoDB
+    if (smartLink.platformClickStats && typeof smartLink.platformClickStats === 'object') {
+      // Vérifier si c'est une Map MongoDB
       if (smartLink.platformClickStats instanceof Map) {
-        console.log(\'📊 Traitement en tant que Map MongoDB\');
+        console.log('📊 Traitement en tant que Map MongoDB');
         for (const [platform, clicks] of smartLink.platformClickStats.entries()) {
           if (clicks > 0) {
             const platformName = {
-              spotify: \'Spotify\',
-              deezer: \'Deezer\',
-              appleMusic: \'Apple Music\',
-              youtubeMusic: \'YouTube Music\',
-              soundcloud: \'SoundCloud\',
-              tidal: \'Tidal\',
-              amazonMusic: \'Amazon Music\',
-              boomplay: \'Boomplay\'
+              spotify: 'Spotify',
+              deezer: 'Deezer',
+              appleMusic: 'Apple Music',
+              youtubeMusic: 'YouTube Music',
+              soundcloud: 'SoundCloud',
+              tidal: 'Tidal',
+              amazonMusic: 'Amazon Music',
+              boomplay: 'Boomplay'
             }[platform.toLowerCase()] || platform;
 
             platformStats.push({
@@ -166,13 +166,13 @@ exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
             });
           }
         }
-      } else if (typeof smartLink.platformClickStats === \'object\' && smartLink.platformClickStats !== null) {
-        console.log(\'📊 Traitement en tant que Object JavaScript\');
+      } else if (typeof smartLink.platformClickStats === 'object' && smartLink.platformClickStats !== null) {
+        console.log('📊 Traitement en tant que Object JavaScript');
         
         // Récupérer le document brut pour vérifier les données directement de MongoDB
         const rawSmartLink = await SmartLink.findById(id).lean();
-        console.log(\'🔍 Analytics - Raw platformClickStats:\', rawSmartLink.platformClickStats);
-        console.log(\'🔍 Analytics - Raw platformClickStats keys:\', Object.keys(rawSmartLink.platformClickStats || {}));
+        console.log('🔍 Analytics - Raw platformClickStats:', rawSmartLink.platformClickStats);
+        console.log('🔍 Analytics - Raw platformClickStats keys:', Object.keys(rawSmartLink.platformClickStats || {}));
         
         // Traitement avec les données brutes - SANS FILTRAGE pour debug
         const rawStats = rawSmartLink.platformClickStats || {};
@@ -183,17 +183,17 @@ exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
             
             // Ajouter TOUTES les plateformes, même avec 0 clics pour debug
             const platformName = {
-              spotify: \'Spotify\',
-              deezer: \'Deezer\',
-              \'apple music\': \'Apple Music\',
-              applemusic: \'Apple Music\',
-              \'youtube music\': \'YouTube Music\',
-              youtubemusic: \'YouTube Music\',
-              soundcloud: \'SoundCloud\',
-              tidal: \'Tidal\',
-              \'amazon music\': \'Amazon Music\',
-              amazonmusic: \'Amazon Music\',
-              boomplay: \'Boomplay\'
+              spotify: 'Spotify',
+              deezer: 'Deezer',
+              'apple music': 'Apple Music',
+              applemusic: 'Apple Music',
+              'youtube music': 'YouTube Music',
+              youtubemusic: 'YouTube Music',
+              soundcloud: 'SoundCloud',
+              tidal: 'Tidal',
+              'amazon music': 'Amazon Music',
+              amazonmusic: 'Amazon Music',
+              boomplay: 'Boomplay'
             }[platformNameKey.toLowerCase()] || platformNameKey;
 
             platformStats.push({
@@ -206,7 +206,7 @@ exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
       }
     }
     
-    console.log(\'📊 Analytics - platformStats générées:\', platformStats);
+    console.log('📊 Analytics - platformStats générées:', platformStats);
 
     // Statistiques générales
     const totalViews = smartLink.viewCount || 0;
@@ -227,12 +227,12 @@ exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
       }
     });
   } catch (error) {
-    console.error(\'Erreur récupération analytics:\', error);
-    return next(new ErrorResponse(\'Erreur lors de la récupération des analytics\', 500));
+    console.error('Erreur récupération analytics:', error);
+    return next(new ErrorResponse('Erreur lors de la récupération des analytics', 500));
   }
 });
 
-// @desc    Récupérer les statistiques d\'un artiste
+// @desc    Récupérer les statistiques d'un artiste
 // @route   GET /api/v1/analytics/artist/:id
 // @access  Private (Admin)
 exports.getArtistAnalytics = asyncHandler(async (req, res, next) => {
@@ -241,7 +241,7 @@ exports.getArtistAnalytics = asyncHandler(async (req, res, next) => {
 
   const artist = await Artist.findById(id);
   if (!artist) {
-    return next(new ErrorResponse(`Artiste non trouvé avec l\'ID ${id}`, 404));
+    return next(new ErrorResponse(`Artiste non trouvé avec l'ID ${id}`, 404));
   }
 
   try {
@@ -253,28 +253,28 @@ exports.getArtistAnalytics = asyncHandler(async (req, res, next) => {
       { $match: { artistId: artist._id } },
       {
         $group: {
-          _id: \'$smartLinkId\',
-          totalClicks: { $sum: \'$clickCount\' },
+          _id: '$smartLinkId',
+          totalClicks: { $sum: '$clickCount' },
           uniqueClicks: { $sum: 1 },
-          platforms: { $addToSet: \'$platform\' }
+          platforms: { $addToSet: '$platform' }
         }
       },
       {
         $lookup: {
-          from: \'smartlinks\',
-          localField: \'_id\',
-          foreignField: \'_id\',
-          as: \'smartLink\'
+          from: 'smartlinks',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'smartLink'
         }
       },
-      { $unwind: \'$smartLink\' },
+      { $unwind: '$smartLink' },
       {
         $project: {
-          trackTitle: \'$smartLink.trackTitle\',
-          slug: \'$smartLink.slug\',
+          trackTitle: '$smartLink.trackTitle',
+          slug: '$smartLink.slug',
           totalClicks: 1,
           uniqueClicks: 1,
-          platformCount: { $size: \'$platforms\' }
+          platformCount: { $size: '$platforms' }
         }
       },
       { $sort: { totalClicks: -1 } },
@@ -295,8 +295,8 @@ exports.getArtistAnalytics = asyncHandler(async (req, res, next) => {
       }
     });
   } catch (error) {
-    console.error(\'Erreur analytics artiste:\', error);
-    return next(new ErrorResponse(\'Erreur lors de la récupération des analytics artiste\', 500));
+    console.error('Erreur analytics artiste:', error);
+    return next(new ErrorResponse('Erreur lors de la récupération des analytics artiste', 500));
   }
 });
 
@@ -320,20 +320,20 @@ exports.getGlobalAnalytics = asyncHandler(async (req, res, next) => {
       {
         $group: {
           _id: null,
-          totalClicks: { $sum: \'$clickCount\' },
+          totalClicks: { $sum: '$clickCount' },
           uniqueClicks: { $sum: 1 },
-          uniqueSmartLinks: { $addToSet: \'$smartLinkId\' },
-          uniqueArtists: { $addToSet: \'$artistId\' },
-          uniquePlatforms: { $addToSet: \'$platform\' }
+          uniqueSmartLinks: { $addToSet: '$smartLinkId' },
+          uniqueArtists: { $addToSet: '$artistId' },
+          uniquePlatforms: { $addToSet: '$platform' }
         }
       },
       {
         $project: {
           totalClicks: 1,
           uniqueClicks: 1,
-          uniqueSmartLinks: { $size: \'$uniqueSmartLinks\' },
-          uniqueArtists: { $size: \'$uniqueArtists\' },
-          uniquePlatforms: { $size: \'$uniquePlatforms\' }
+          uniqueSmartLinks: { $size: '$uniqueSmartLinks' },
+          uniqueArtists: { $size: '$uniqueArtists' },
+          uniquePlatforms: { $size: '$uniquePlatforms' }
         }
       }
     ]);
@@ -343,8 +343,8 @@ exports.getGlobalAnalytics = asyncHandler(async (req, res, next) => {
       { $match: matchQuery },
       {
         $group: {
-          _id: \'$utmParams.utm_source\',
-          clicks: { $sum: \'$clickCount\' },
+          _id: '$utmParams.utm_source',
+          clicks: { $sum: '$clickCount' },
           uniqueClicks: { $sum: 1 }
         }
       },
@@ -362,10 +362,10 @@ exports.getGlobalAnalytics = asyncHandler(async (req, res, next) => {
       },
       {
         $group: {
-          _id: \'$abTestVariant\',
-          clicks: { $sum: \'$clickCount\' },
+          _id: '$abTestVariant',
+          clicks: { $sum: '$clickCount' },
           uniqueClicks: { $sum: 1 },
-          avgPosition: { $avg: \'$platformPosition\' }
+          avgPosition: { $avg: '$platformPosition' }
         }
       },
       { $sort: { clicks: -1 } }
@@ -387,8 +387,8 @@ exports.getGlobalAnalytics = asyncHandler(async (req, res, next) => {
       }
     });
   } catch (error) {
-    console.error(\'Erreur analytics globales:\', error);
-    return next(new ErrorResponse(\'Erreur lors de la récupération des analytics globales\', 500));
+    console.error('Erreur analytics globales:', error);
+    return next(new ErrorResponse('Erreur lors de la récupération des analytics globales', 500));
   }
 });
 
@@ -429,7 +429,7 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
       {
         $group: {
           _id: null,
-          totalClicks: { $sum: \'$clickCount\' }
+          totalClicks: { $sum: '$clickCount' }
         }
       }
     ]);
@@ -446,7 +446,7 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
       {
         $group: {
           _id: null,
-          totalClicks: { $sum: \'$clickCount\' }
+          totalClicks: { $sum: '$clickCount' }
         }
       }
     ]);
@@ -462,7 +462,7 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
       {
         $group: {
           _id: null,
-          totalClicks: { $sum: \'$clickCount\' }
+          totalClicks: { $sum: '$clickCount' }
         }
       }
     ]);
@@ -471,10 +471,10 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
     
     // Activités récentes (vrais SmartLinks récents)
     const recentActivities = await SmartLink.find()
-      .populate(\'artistId\', \'name\')
+      .populate('artistId', 'name')
       .sort({ createdAt: -1 })
       .limit(4)
-      .select(\'trackTitle artistId createdAt\');
+      .select('trackTitle artistId createdAt');
 
     // Performance de la semaine
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -487,7 +487,7 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
       {
         $group: {
           _id: null,
-          newClicks: { $sum: \'$clickCount\' },
+          newClicks: { $sum: '$clickCount' },
           uniqueClicks: { $sum: 1 }
         }
       }
@@ -505,23 +505,23 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
         stats: {
           totalSmartLinks: {
             value: totalSmartLinks,
-            change: `${smartLinksChange >= 0 ? \'+\' : \'\'}${smartLinksChange}%`,
-            changeType: smartLinksChange >= 0 ? \'positive\' : \'negative\'
+            change: `${smartLinksChange >= 0 ? '+' : ''}${smartLinksChange}%`,
+            changeType: smartLinksChange >= 0 ? 'positive' : 'negative'
           },
           activeArtists: {
             value: totalArtists,
-            change: `${artistsChange >= 0 ? \'+\' : \'\'}${artistsChange}%`,
-            changeType: artistsChange >= 0 ? \'positive\' : \'negative\'
+            change: `${artistsChange >= 0 ? '+' : ''}${artistsChange}%`,
+            changeType: artistsChange >= 0 ? 'positive' : 'negative'
           },
           monthlyViews: {
             value: currentMonthViews,
-            change: `${viewsChange >= 0 ? \'+\' : \'\'}${viewsChange}%`,
-            changeType: viewsChange >= 0 ? \'positive\' : \'negative\'
+            change: `${viewsChange >= 0 ? '+' : ''}${viewsChange}%`,
+            changeType: viewsChange >= 0 ? 'positive' : 'negative'
           },
           totalClicks: {
             value: totalClicksCount,
-            change: viewsChange >= 0 ? \'+2%\' : \'-2%\', // Approximation basée sur les vues
-            changeType: viewsChange >= 0 ? \'positive\' : \'negative\'
+            change: viewsChange >= 0 ? '+2%' : '-2%', // Approximation basée sur les vues
+            changeType: viewsChange >= 0 ? 'positive' : 'negative'
           }
         },
         weeklyPerformance: {
@@ -529,17 +529,17 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
           conversionRate: `${conversionRate}%`
         },
         recentActivities: recentActivities.map(activity => ({
-          type: \'smartlink_created\',
-          title: \'Nouveau SmartLink créé\',
-          subtitle: `\"${activity.trackTitle}\" par ${activity.artistId?.name || \'Artiste\'}`,
+          type: 'smartlink_created',
+          title: 'Nouveau SmartLink créé',
+          subtitle: `"${activity.trackTitle}" par ${activity.artistId?.name || 'Artiste'}`,
           time: activity.createdAt,
           id: activity._id
         }))
       }
     });
   } catch (error) {
-    console.error(\'Erreur statistiques dashboard:\', error);
-    return next(new ErrorResponse(\'Erreur lors de la récupération des statistiques dashboard\', 500));
+    console.error('Erreur statistiques dashboard:', error);
+    return next(new ErrorResponse('Erreur lors de la récupération des statistiques dashboard', 500));
   }
 });
 
@@ -547,7 +547,7 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/analytics/pixel.gif
 // @access  Public
 exports.trackingPixel = asyncHandler(async (req, res, next) => {
-  // Extraire les paramètres de tracking de l\'URL
+  // Extraire les paramètres de tracking de l'URL
   const trackingData = {
     smartlink_id: req.query.id,
     artist_id: req.query.artist,
@@ -557,7 +557,7 @@ exports.trackingPixel = asyncHandler(async (req, res, next) => {
       utm_campaign: req.query.utm_campaign
     },
     click_data: {
-      user_agent: req.headers[\'user-agent\'],
+      user_agent: req.headers['user-agent'],
       referrer: req.headers.referer,
       ip_address: req.ip
     }
@@ -568,25 +568,25 @@ exports.trackingPixel = asyncHandler(async (req, res, next) => {
     smartLinkId: trackingData.smartlink_id,
     artistId: trackingData.artist_id,
     url: req.originalUrl,
-    platform: \'pixel_tracking\',
+    platform: 'pixel_tracking',
     utmParams: trackingData.utm_params,
     clickData: trackingData.click_data
   }).catch(error => {
-    console.error(\'Erreur enregistrement pixel tracking:\', error);
+    console.error('Erreur enregistrement pixel tracking:', error);
   });
 
   // Retourner une image GIF transparente 1x1
   const pixelBuffer = Buffer.from(
-    \'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\',
-    \'base64\'
+    'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+    'base64'
   );
 
   res.set({
-    \'Content-Type\': \'image/gif\',
-    \'Content-Length\': pixelBuffer.length,
-    \'Cache-Control\': \'no-cache, no-store, must-revalidate\',
-    \'Pragma\': \'no-cache\',
-    \'Expires\': \'0\'
+    'Content-Type': 'image/gif',
+    'Content-Length': pixelBuffer.length,
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
   });
 
   res.send(pixelBuffer);
