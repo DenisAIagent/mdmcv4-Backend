@@ -29,6 +29,10 @@ const smartlinkRoutes = require('../routes/smartLinkRoutes');
 const uploadRoutes = require('../routes/uploadRoutes');
 const wordpressRoutes = require('../routes/wordpress.routes');
 const analyticsRoutes = require('../routes/analytics');
+
+// Middleware SEO pour smartlinks
+const { smartlinkSEOMiddleware } = require('../middleware/smartlinkSEO');
+
 // Ajoutez d'autres routeurs ici selon votre projet
 // const userRoutes = require('../routes/user.routes.js');
 
@@ -90,6 +94,30 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// --- Route SEO pour smartlinks (AVANT les routes API) ---
+// Intercepte les requêtes directes vers les smartlinks pour les bots sociaux
+app.get('/smartlinks/:artistSlug/:trackSlug', smartlinkSEOMiddleware);
+
+// Route pour gérer les URLs avec hash (#) - redirection côté serveur
+app.get('/', (req, res, next) => {
+  const userAgent = req.get('User-Agent') || '';
+  const isSocialBot = /facebook|twitter|linkedinbot|whatsapp|telegram|discord|slack|bot|crawler|spider/i.test(userAgent);
+  
+  // Si c'est un bot social et qu'il y a un fragment dans le referer
+  if (isSocialBot) {
+    const referer = req.get('Referer') || '';
+    const smartlinkMatch = referer.match(/#\/smartlinks\/([^\/]+)\/([^\/\?]+)/);
+    
+    if (smartlinkMatch) {
+      const [, artistSlug, trackSlug] = smartlinkMatch;
+      req.params = { artistSlug, trackSlug };
+      return smartlinkSEOMiddleware(req, res, next);
+    }
+  }
+  
+  next();
+});
 
 // --- Monter les Routeurs ---
 // ✅ CORRECTION: Toutes les routes maintenant sur /api/v1
