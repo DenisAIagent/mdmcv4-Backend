@@ -117,6 +117,23 @@ exports.getSmartLinkAnalytics = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`SmartLink non trouvé avec l'ID ${id}`, 404));
   }
 
+  // 🔧 Migration automatique des données Map vers Object si nécessaire
+  let needsSave = false;
+  if (smartLink.platformClickStats && smartLink.platformClickStats instanceof Map) {
+    console.log('🔄 Migration Map vers Object détectée pour SmartLink', id);
+    const mapData = {};
+    for (const [key, value] of smartLink.platformClickStats.entries()) {
+      mapData[key] = value;
+    }
+    smartLink.platformClickStats = mapData;
+    needsSave = true;
+  }
+  
+  if (needsSave) {
+    await smartLink.save({ validateBeforeSave: false });
+    console.log('✅ Migration terminée pour SmartLink', id);
+  }
+
   try {
     // Statistiques par plateforme depuis platformClickStats (MongoDB Map)
     const platformStats = [];
