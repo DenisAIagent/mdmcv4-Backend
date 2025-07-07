@@ -780,3 +780,30 @@ Stack: Error: Non autorisé à accéder à cette route (token manquant)
     at Function.handle (/Users/denisadam/Documents/claude/MDMC Website/mdmcv6-project/backend/node_modules/express/lib/router/index.js:175:3)
 ------------------------------------
 [0mPOST /api/v1/smartlinks/fetch-platform-links [33m401[0m 1.671 ms - 85[0m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T12:21:35.462Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T12:21:35.464Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T12:26:42.525Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T12:26:42.526Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/app.js`[39m
+✅ [2025-07-07T12:29:31.809Z] WP-ROUTES: ✅ Controller WordPress importé avec succès {}
+✅ [2025-07-07T12:29:31.811Z] WP-ROUTES: 📋 Routes WordPress configurées: {
+  routes: [ 'GET /posts', 'GET /test' ],
+  middleware: [ 'logging', 'error-handler' ]
+}
+Serveur démarré en mode development sur le port 5001
+MongoDB Connecté: yamanote.proxy.rlwy.net
