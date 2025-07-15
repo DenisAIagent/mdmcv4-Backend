@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Track - Test Artist | Écoutez sur toutes les plateformes</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Écoutez Test Track par Test Artist sur votre plateforme musicale préférée : Spotify, Apple Music, Deezer, YouTube Music et plus encore.">
+    <meta name="keywords" content="Test Track, Test Artist, musique, streaming, Spotify, Apple Music, Deezer">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Test Track - Test Artist">
+    <meta property="og:description" content="Écoutez Test Track par Test Artist sur votre plateforme préférée">
+    <meta property="og:image" content="https://via.placeholder.com/400x400/ff6b6b/ffffff?text=TEST">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="music.song">
+    <meta property="og:url" content="http://localhost:5001/s/test-artist/test-track">
+    <meta property="music:musician" content="Test Artist">
+    <meta property="music:release_date" content="Wed Jan 01 2025 00:00:00 GMT+0000 (heure normale d’Europe de l’Ouest)">
+    
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Test Track - Test Artist">
+    <meta name="twitter:description" content="Écoutez Test Track par Test Artist sur votre plateforme préférée">
+    <meta name="twitter:image" content="https://via.placeholder.com/400x400/ff6b6b/ffffff?text=TEST">
+    
+    
+    <!-- 🎯 GOOGLE ANALYTICS 4 - INJECTION STATIQUE -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TEST123456"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-TEST123456', {
+            page_title: 'Test Track - Test Artist',
+            page_location: window.location.href,
+            custom_map: {
+                'custom_parameter_1': 'smartlink_type',
+                'custom_parameter_2': 'artist_name',
+                'custom_parameter_3': 'track_title'
+            }
+        });
+        
+        gtag('event', 'page_view', {
+            smartlink_type: 'music',
+            artist_name: 'Test Artist',
+            track_title: 'Test Track',
+            smartlink_id: '60f7b3b3b3b3b3b3b3b3b3b3'
+        });
+        
+        console.log('🎯 GA4 initialisé statiquement:', 'G-TEST123456');
+    </script>
+    <!-- 🎯 GOOGLE TAG MANAGER - INJECTION STATIQUE -->
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'smartlink_type': 'music',
+            'artist_name': 'Test Artist',
+            'track_title': 'Test Track',
+            'smartlink_id': '60f7b3b3b3b3b3b3b3b3b3b3',
+            'event': 'smartlink_page_load'
+        });
+        
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-TEST123');
+        
+        console.log('🎯 GTM initialisé statiquement:', 'GTM-TEST123');
+    </script>
+    <!-- 🎯 META PIXEL - INJECTION STATIQUE -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        
+        fbq('init', '123456789012345');
+        fbq('track', 'PageView');
+        
+        fbq('trackCustom', 'SmartLinkView', {
+            content_name: 'Test Track - Test Artist',
+            content_category: 'Music',
+            smartlink_type: 'music',
+            artist_name: 'Test Artist',
+            track_title: 'Test Track',
+            smartlink_id: '60f7b3b3b3b3b3b3b3b3b3b3'
+        });
+        
+        console.log('🎯 Meta Pixel initialisé statiquement:', '123456789012345');
+    </script>
+    <!-- 🎯 TIKTOK PIXEL - INJECTION STATIQUE -->
+    <script>
+        !function (w, d, t) {
+            w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
+            
+            ttq.load('CTEST123456789012345');
+            ttq.page();
+            
+            ttq.track('ViewContent', {
+                content_id: '60f7b3b3b3b3b3b3b3b3b3b3',
+                content_type: 'music',
+                content_name: 'Test Track - Test Artist',
+                description: 'SmartLink music page view',
+                value: 1,
+                currency: 'EUR'
+            });
+            
+            console.log('🎯 TikTok Pixel initialisé statiquement:', 'CTEST123456789012345');
+        }(window, document, 'ttq');
+    </script>
+    
+    <style>
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .bg-artwork {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://via.placeholder.com/400x400/ff6b6b/ffffff?text=TEST');
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px);
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        .smartlink-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .artwork {
+            width: 200px;
+            height: 200px;
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            display: block;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .track-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        
+        .artist-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        
+        .platforms {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .platform {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .platform:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .platform-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .platform-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+        }
+        
+        .platform-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+        
+        .platform-cta {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007AFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 480px) {
+            .smartlink-container { padding: 30px 20px; }
+            .artwork { width: 160px; height: 160px; }
+            .track-title { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-artwork"></div>
+    
+    <div class="smartlink-container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Chargement...</p>
+        </div>
+        
+        <div id="content" style="display: none;">
+            <img id="artwork" class="artwork" src="https://via.placeholder.com/400x400/ff6b6b/ffffff?text=TEST" alt="Test Track - Test Artist">
+            
+            <h1 class="track-title">Test Track</h1>
+            <p class="artist-name">Test Artist</p>
+            <p class="subtitle">Choisissez votre plateforme préférée</p>
+            
+            <div id="platforms" class="platforms">
+                <!-- Les plateformes seront injectées ici -->
+            </div>
+        </div>
+    </div>
+    
+    
+    <script>
+        // Configuration globale
+        window.SMARTLINK_DATA = {
+            id: '60f7b3b3b3b3b3b3b3b3b3b3',
+            trackTitle: 'Test Track',
+            artistName: 'Test Artist',
+            platforms: [{"name":"Spotify","url":"https://open.spotify.com/track/test","logo":"https://services.linkfire.com/logo_spotify_onlight.svg"},{"name":"Apple Music","url":"https://music.apple.com/test","logo":"https://services.linkfire.com/logo_applemusic_onlight.svg"},{"name":"YouTube","url":"https://www.youtube.com/watch?v=test","logo":"https://services.linkfire.com/logo_youtube_onlight.svg"}]
+        };
+        
+        // Fonction de tracking des clics
+        function trackPlatformClick(platformName, platformUrl) {
+            console.log('🔗 Clic sur', platformName);
+            
+            // GA4 tracking
+            if (window.gtag) {
+                gtag('event', 'platform_click', {
+                    event_category: 'smartlink',
+                    event_label: platformName,
+                    smartlink_id: window.SMARTLINK_DATA.id,
+                    track_title: window.SMARTLINK_DATA.trackTitle,
+                    artist_name: window.SMARTLINK_DATA.artistName,
+                    platform_clicked: platformName,
+                    value: 1
+                });
+                console.log('🎯 GA4 - Platform click tracked:', platformName);
+            }
+            
+            // GTM tracking
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    event: 'smartlink_platform_click',
+                    platform_name: platformName,
+                    platform_url: platformUrl,
+                    smartlink_id: window.SMARTLINK_DATA.id,
+                    track_title: window.SMARTLINK_DATA.trackTitle,
+                    artist_name: window.SMARTLINK_DATA.artistName,
+                    event_category: 'smartlink_interaction',
+                    event_action: 'platform_click',
+                    event_label: platformName,
+                    value: 1
+                });
+                console.log('🎯 GTM - Platform click tracked:', platformName);
+            }
+            
+            // Meta Pixel tracking
+            if (window.fbq) {
+                fbq('track', 'Lead', {
+                    content_name: window.SMARTLINK_DATA.trackTitle + ' - ' + window.SMARTLINK_DATA.artistName,
+                    content_category: 'Music',
+                    platform: platformName,
+                    value: 1,
+                    currency: 'EUR'
+                });
+                
+                fbq('trackCustom', 'SmartLinkPlatformClick', {
+                    platform_name: platformName,
+                    smartlink_id: window.SMARTLINK_DATA.id,
+                    track_title: window.SMARTLINK_DATA.trackTitle,
+                    artist_name: window.SMARTLINK_DATA.artistName
+                });
+                console.log('🎯 Meta Pixel - Platform click tracked:', platformName);
+            }
+            
+            // TikTok Pixel tracking
+            if (window.ttq) {
+                ttq.track('ClickButton', {
+                    content_id: window.SMARTLINK_DATA.id,
+                    content_name: window.SMARTLINK_DATA.trackTitle + ' - ' + window.SMARTLINK_DATA.artistName,
+                    platform: platformName,
+                    button_text: platformName,
+                    value: 1,
+                    currency: 'EUR'
+                });
+                console.log('🎯 TikTok Pixel - Platform click tracked:', platformName);
+            }
+            
+            // Database tracking
+            trackToDatabase(platformName);
+            
+            // Redirection
+            setTimeout(function() {
+                window.open(platformUrl, '_blank');
+            }, 100);
+        }
+        
+        // Database tracking
+        async function trackToDatabase(platformName) {
+            try {
+                const response = await fetch('/api/v1/smartlinks/' + window.SMARTLINK_DATA.id + '/log-platform-click', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ platformName: platformName })
+                });
+                
+                if (response.ok) {
+                    console.log('📊 Database tracking successful');
+                } else {
+                    console.warn('📊 Database tracking failed:', response.status);
+                }
+            } catch (error) {
+                console.error('📊 Database tracking error:', error);
+            }
+        }
+        
+        // Initialisation interface
+        function initializeInterface() {
+            const platforms = window.SMARTLINK_DATA.platforms;
+            const container = document.getElementById('platforms');
+            
+            container.innerHTML = platforms.map(function(platform) {
+                return '<div class="platform" onclick="trackPlatformClick(\'' + platform.name + '\', \'' + platform.url + '\')"><div class="platform-info"><img class="platform-logo" src="' + platform.logo + '" alt="' + platform.name + '"><span class="platform-name">' + platform.name + '</span></div><button class="platform-cta">Écouter</button></div>';
+            }).join('');
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            
+            console.log('🎨 Interface initialisée avec', platforms.length, 'plateformes');
+        }
+        
+        // Démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 SmartLink hybride démarré');
+            console.log('🎯 Analytics status:', {
+                ga4: !!window.gtag,
+                gtm: !!window.dataLayer,
+                metaPixel: !!window.fbq,
+                tiktokPixel: !!window.ttq
+            });
+            
+            setTimeout(initializeInterface, 500);
+        });
+    </script>
+    
+    
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TEST123" 
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+             src="https://www.facebook.com/tr?id=123456789012345&ev=PageView&noscript=1"/>
+    </noscript>
+</body>
+</html>

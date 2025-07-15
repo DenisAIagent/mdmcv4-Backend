@@ -29,6 +29,7 @@ const smartlinkRoutes = require('../routes/smartLinkRoutes');
 const uploadRoutes = require('../routes/uploadRoutes');
 const wordpressRoutes = require('../routes/wordpress.routes');
 const analyticsRoutes = require('../routes/analytics');
+const publicSmartLinkRoutes = require('../routes/smartlinks/publicSmartLink');
 
 // Middleware SEO pour smartlinks
 const { smartlinkSEOMiddleware } = require('../middleware/smartlinkSEO');
@@ -94,6 +95,10 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// --- 🎯 NOUVELLES ROUTES SMARTLINKS HYBRIDES AVEC ANALYTICS STATIQUES ---
+// IMPORTANT: Ces routes doivent être AVANT les routes API pour intercepter les requêtes
+app.use('/', publicSmartLinkRoutes);
 
 // --- Route SEO pour smartlinks (AVANT les routes API) ---
 // Intercepte les requêtes directes vers les smartlinks pour les bots sociaux

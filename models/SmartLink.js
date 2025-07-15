@@ -90,6 +90,11 @@ const smartLinkSchema = new mongoose.Schema(
       type: Object,
       default: {}
     },
+    platformClicks: { // Map pour tracking des clics par plateforme (nouveau format)
+      type: Map,
+      of: Number,
+      default: new Map()
+    },
     isPublished: {
       type: Boolean,
       default: true, // 🚀 Publié par défaut pour les tests
