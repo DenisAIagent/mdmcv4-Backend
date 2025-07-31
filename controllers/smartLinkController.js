@@ -37,6 +37,7 @@ const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null,
 // @route   POST /api/smartlinks
 // @access  Private (Admin)
 exports.createSmartLink = asyncHandler(async (req, res, next) => {
+  console.log('🔍 DEBUG - Payload complet reçu:', JSON.stringify(req.body, null, 2));
   const { artistId, artistName, trackTitle, slug: proposedSlugByUser, ...otherData } = req.body;
 
   let artist;
@@ -79,6 +80,8 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
     // userId: req.user?.id, // Si gestion des utilisateurs activée et protect middleware utilisé
   };
 
+  console.log('🔍 DEBUG - SmartLinkData avant création:', JSON.stringify(smartLinkData, null, 2));
+  
   const smartLink = await SmartLink.create(smartLinkData);
   
   // Récupérer le SmartLink avec les informations de l'artiste pour la redirection
