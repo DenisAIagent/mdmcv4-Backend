@@ -17,18 +17,24 @@ const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null,
 
   let slug = baseSlugAttempt;
   let count = 0;
+  console.log(`🔍 DEBUG - generateUniqueTrackSlug: baseSlug=${baseSlugAttempt}, artistId=${artistId}`);
+  
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const query = { artistId, slug };
     if (excludeId) {
       query._id = { $ne: excludeId };
     }
+    console.log(`🔍 DEBUG - Recherche SmartLink existant avec query:`, query);
     const existingSmartLink = await SmartLink.findOne(query);
+    console.log(`🔍 DEBUG - SmartLink trouvé:`, existingSmartLink ? 'OUI' : 'NON');
+    
     if (!existingSmartLink) {
       break;
     }
     count++;
     slug = `${baseSlugAttempt}-${count}`;
+    console.log(`🔍 DEBUG - Tentative avec nouveau slug: ${slug}`);
   }
   return slug;
 };
@@ -70,7 +76,9 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('artistId ou artistName requis', 400));
   }
 
+  console.log(`🔍 DEBUG - Génération slug pour: ${trackTitle} avec artistId: ${finalArtistId}`);
   const finalSlug = await generateUniqueTrackSlug(trackTitle, finalArtistId, proposedSlugByUser);
+  console.log(`🔍 DEBUG - Slug généré: ${finalSlug}`);
 
   const smartLinkData = {
     ...otherData,
