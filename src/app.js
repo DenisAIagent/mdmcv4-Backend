@@ -77,6 +77,7 @@ if (process.env.NODE_ENV === 'development') {
       process.env.FRONTEND_URL || 'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:3002',
+      'https://mdmcv7-frontend-production.up.railway.app',
       'http://192.168.1.236:3000',
       'http://192.168.1.236:3001',
       'http://192.168.1.236:3002'
