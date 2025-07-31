@@ -14,6 +14,10 @@ const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null,
   if (!baseSlugAttempt) {
     baseSlugAttempt = 'smartlink';
   }
+  
+  // SOLUTION TEMPORAIRE: Ajouter timestamp pour éviter les conflits de slug
+  const timestamp = Date.now().toString().slice(-6); // Derniers 6 chiffres
+  baseSlugAttempt = `${baseSlugAttempt}-${timestamp}`;
 
   let slug = baseSlugAttempt;
   let count = 0;
