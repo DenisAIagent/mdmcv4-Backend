@@ -28,49 +28,84 @@ const smartlinkSEOMiddleware = async (req, res, next) => {
     console.log(`🔗 Génération SEO pour: /${artistSlug}/${trackSlug}`);
 
     // Chercher le smartlink dans la base de données
+    console.log(`🔍 Recherche SmartLink avec trackSlug: "${trackSlug}"`);
     const smartLink = await SmartLink.findOne({ 
       trackSlug: trackSlug,
       isPublished: true 
     }).populate('artistId');
 
+    console.log(`📊 SmartLink trouvé:`, smartLink ? 'OUI' : 'NON');
+    if (smartLink) {
+      console.log(`🎵 SmartLink: ${smartLink.trackTitle} - ${smartLink.artistId?.name}`);
+    }
+
     if (!smartLink || !smartLink.artistId) {
+      console.log(`❌ SmartLink non trouvé ou sans artiste, recherche alternative...`);
+      
+      // Recherche alternative par shortId à la fin de l'URL
+      const shortIdMatch = trackSlug.match(/-(\d+)$/);
+      if (shortIdMatch) {
+        const shortId = shortIdMatch[1];
+        console.log(`🔍 Tentative recherche par shortId: "${shortId}"`);
+        const altSmartLink = await SmartLink.findOne({ 
+          shortId: shortId,
+          isPublished: true 
+        }).populate('artistId');
+        
+        if (altSmartLink) {
+          console.log(`✅ SmartLink trouvé par shortId: ${altSmartLink.trackTitle}`);
+          // Continue avec ce SmartLink
+          return generateAndSendSEO(altSmartLink, artistSlug, trackSlug, res);
+        }
+      }
+      
       return next(); // Laisser React gérer la 404
     }
 
-    // Vérifier que l'artist slug correspond
-    if (smartLink.artistId.slug !== artistSlug) {
-      return next();
-    }
-
-    // Construire les métadonnées
-    const metadata = {
-      title: `${smartLink.trackTitle} - ${smartLink.artistId.name}`,
-      description: smartLink.description || `Listen to ${smartLink.trackTitle} by ${smartLink.artistId.name} on your favorite music platform. Available on Spotify, Apple Music, YouTube and more.`,
-      image: smartLink.coverImageUrl || 'https://www.mdmcmusicads.com/assets/images/logo.png',
-      url: `https://www.mdmcmusicads.com/#/smartlinks/${artistSlug}/${trackSlug}`,
-      siteName: 'MDMC Music Ads',
-      type: 'music.song',
-      artist: smartLink.artistId.name,
-      releaseDate: smartLink.releaseDate ? smartLink.releaseDate.toISOString().split('T')[0] : null
-    };
-
-    // Générer le HTML avec métadonnées
-    const html = generateSEOHTML(metadata);
-    
-    // Définir les headers appropriés
-    res.set({
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600', // Cache 1 heure
-      'X-Robots-Tag': 'index, follow'
-    });
-
-    return res.send(html);
+    return generateAndSendSEO(smartLink, artistSlug, trackSlug, res);
 
   } catch (error) {
     console.error('❌ Erreur SEO middleware:', error);
     return next(); // En cas d'erreur, laisser React gérer
   }
 };
+
+/**
+ * Génère et envoie le HTML SEO pour un SmartLink
+ */
+function generateAndSendSEO(smartLink, artistSlug, trackSlug, res) {
+  // Vérifier que l'artist slug correspond (si on a un artiste)
+  if (smartLink.artistId && smartLink.artistId.slug !== artistSlug) {
+    console.log(`❌ Artist slug mismatch: attendu "${artistSlug}", trouvé "${smartLink.artistId.slug}"`);
+    // Continue quand même - l'important c'est qu'on ait le SmartLink
+  }
+
+  // Construire les métadonnées
+  const metadata = {
+    title: `${smartLink.trackTitle} - ${smartLink.artistId?.name || smartLink.artistName}`,
+    description: smartLink.description || `Listen to ${smartLink.trackTitle} by ${smartLink.artistId?.name || smartLink.artistName} on your favorite music platform. Available on Spotify, Apple Music, YouTube and more.`,
+    image: smartLink.coverImageUrl || 'https://www.mdmcmusicads.com/assets/images/logo.png',
+    url: `https://www.mdmcmusicads.com/#/smartlinks/${artistSlug}/${trackSlug}`,
+    siteName: 'MDMC Music Ads',
+    type: 'music.song',
+    artist: smartLink.artistId?.name || smartLink.artistName,
+    releaseDate: smartLink.releaseDate ? smartLink.releaseDate.toISOString().split('T')[0] : null
+  };
+
+  console.log(`✅ Génération HTML SEO pour: ${metadata.title}`);
+
+  // Générer le HTML avec métadonnées
+  const html = generateSEOHTML(metadata);
+  
+  // Définir les headers appropriés
+  res.set({
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600', // Cache 1 heure
+    'X-Robots-Tag': 'index, follow'
+  });
+
+  return res.send(html);
+}
 
 /**
  * Génère le HTML avec métadonnées Open Graph optimisées

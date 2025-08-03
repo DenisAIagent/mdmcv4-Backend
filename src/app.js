@@ -123,56 +123,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ---------------------------------------------------------------------------
-// Middleware de rendu dynamique
-// ---------------------------------------------------------------------------
-// Ce middleware intercepte les requêtes des bots sociaux et renvoie une version
-// HTML pré‑rendue de la SPA en utilisant Puppeteer. Les requêtes API sont
-// ignorées et continuent vers les routeurs existants.
-app.use(async (req, res, next) => {
-  const userAgent = req.headers['user-agent'];
-  
-  // Log pour diagnostiquer
-  console.log(`[Dynamic Render] Request: ${req.path} | User-Agent: ${userAgent}`);
-  
-  // Si l'UA est absent ou ne contient aucun des agents de la liste, continuer normalement
-  const isBot = userAgent && BOT_AGENTS.some(bot => userAgent.toLowerCase().includes(bot));
-  if (!isBot) {
-    console.log(`[Dynamic Render] Non-bot request, continuing normally`);
-    return next();
-  }
-  
-  console.log(`[Dynamic Render] Bot detected! Processing request for: ${req.path}`);
-  
-  // Ne pas traiter les appels API
-  if (req.path.startsWith('/api')) {
-    console.log(`[Dynamic Render] API request, skipping render`);
-    return next();
-  }
-  try {
-    // Construire l'URL complète (y compris le hash SPA) à pré‑rendre
-    const baseUrl = process.env.FRONTEND_BASE_URL || 'https://www.mdmcmusicads.com';
-    const fullUrlToRender = `${baseUrl}/#${req.originalUrl}`;
-    // Servir depuis le cache si la page a déjà été rendue
-    if (RENDER_CACHE.has(fullUrlToRender)) {
-      console.log(`[Dynamic Render] Servant depuis le cache : ${fullUrlToRender}`);
-      return res.send(RENDER_CACHE.get(fullUrlToRender));
-    }
-    console.log(`[Dynamic Render] Lancement du rendu pour : ${fullUrlToRender}`);
-    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-    const page = await browser.newPage();
-    await page.goto(fullUrlToRender, { waitUntil: 'networkidle0' });
-    const html = await page.content();
-    await browser.close();
-    // Mise en cache pour 1 h
-    RENDER_CACHE.set(fullUrlToRender, html);
-    setTimeout(() => RENDER_CACHE.delete(fullUrlToRender), 3600_000);
-    return res.send(html);
-  } catch (err) {
-    console.error(`[Dynamic Render] Erreur lors du rendu de ${req.originalUrl}`, err);
-    return next();
-  }
-});
+// Note: Middleware Puppeteer supprimé - on utilise smartlinkSEOMiddleware existant
 
 // --- 🎯 NOUVELLES ROUTES SMARTLINKS HYBRIDES AVEC ANALYTICS STATIQUES ---
 // IMPORTANT: Ces routes doivent être AVANT les routes API pour intercepter les requêtes
