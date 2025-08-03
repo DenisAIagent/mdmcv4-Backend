@@ -128,10 +128,6 @@ app.use(cookieParser());
 
 // Note: Middleware Puppeteer supprimé - on utilise smartlinkSEOMiddleware existant
 
-// --- 🎯 NOUVELLES ROUTES SMARTLINKS HYBRIDES AVEC ANALYTICS STATIQUES ---
-// IMPORTANT: Ces routes doivent être AVANT les routes API pour intercepter les requêtes
-app.use('/', publicSmartLinkRoutes);
-
 // --- 📄 SERVEUR DE FICHIERS STATIQUES HTML POUR SMARTLINKS ---
 // Servir les pages statiques HTML générées pour les métadonnées Open Graph
 app.use('/sl', express.static(path.join(__dirname, '..', 'public', 'sl')));
@@ -161,11 +157,12 @@ app.get('/', (req, res, next) => {
 });
 
 // --- Monter les Routeurs ---
+// 🔥 ARCHITECTURE HTML STATIQUE ACTIVÉE - PRIORITÉ ABSOLUE
+app.use('/smartlinks', staticSmartlinksRoutes); // 🆕 Pages HTML statiques (AVANT TOUT)
+
 // ✅ CORRECTION: Toutes les routes maintenant sur /api/v1
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/artists', artistRoutes);
-// 🔥 ARCHITECTURE HTML STATIQUE ACTIVÉE - PRIORITÉ MAXIMALE
-app.use('/smartlinks', staticSmartlinksRoutes); // 🆕 Pages HTML statiques (AVANT tout)
 
 app.use('/api/v1/smartlinks', smartlinkRoutes);
 app.use('/api/v1/smartlinks-html', smartlinksHTMLRoutes); // 🆕 API SmartLinks HTML
@@ -177,6 +174,10 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/static-pages', staticPagesRoutes);
 app.use("/api/v1/reviews", require("../routes/reviews.routes"));
 app.use("/api/simulator", require("../routes/simulator.routes"));
+
+// --- 🎯 ROUTES SMARTLINKS HYBRIDES (FALLBACK APRÈS ROUTES STATIQUES) ---
+// IMPORTANT: Cette route catch-all DOIT être APRÈS les routes statiques
+app.use('/', publicSmartLinkRoutes);
 
 // ✅ CORRECTION: Route principale API v1
 app.get('/api/v1', (req, res) => {
