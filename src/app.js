@@ -31,6 +31,7 @@ const uploadRoutes = require('../routes/uploadRoutes');
 const wordpressRoutes = require('../routes/wordpress.routes');
 const analyticsRoutes = require('../routes/analytics');
 const publicSmartLinkRoutes = require('../routes/smartlinks/publicSmartLink');
+const staticPagesRoutes = require('../routes/staticPages.routes');
 
 // Middleware SEO pour smartlinks
 const { smartlinkSEOMiddleware } = require('../middleware/smartlinkSEO');
@@ -102,6 +103,10 @@ app.use(cookieParser());
 // IMPORTANT: Ces routes doivent être AVANT les routes API pour intercepter les requêtes
 app.use('/', publicSmartLinkRoutes);
 
+// --- 📄 SERVEUR DE FICHIERS STATIQUES HTML POUR SMARTLINKS ---
+// Servir les pages statiques HTML générées pour les métadonnées Open Graph
+app.use('/sl', express.static(path.join(__dirname, '..', 'public', 'sl')));
+
 // --- Route SEO pour smartlinks (AVANT les routes API) ---
 // Intercepte les requêtes directes vers les smartlinks pour les bots sociaux
 app.get('/smartlinks/:artistSlug/:trackSlug', smartlinkSEOMiddleware);
@@ -136,6 +141,7 @@ app.use('/api/v1/wordpress', wordpressRoutes);
 app.use('/api/wordpress', wordpressRoutes); // ⭐ Ajoutez cette ligne
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/static-pages', staticPagesRoutes);
 app.use("/api/v1/reviews", require("../routes/reviews.routes"));
 app.use("/api/simulator", require("../routes/simulator.routes"));
 
@@ -152,7 +158,8 @@ app.get('/api/v1', (req, res) => {
       shortlinks: '/api/v1/shortlinks',
       upload: '/api/v1/upload',
       wordpress: '/api/v1/wordpress',
-      reviews: '/api/v1/reviews'
+      reviews: '/api/v1/reviews',
+      'static-pages': '/api/v1/static-pages'
     }
   });
 });
