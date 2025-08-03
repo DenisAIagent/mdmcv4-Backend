@@ -26,10 +26,14 @@ const BOT_AGENTS = [
   'googlebot',
   'bingbot',
   'facebookexternalhit',
+  'facebookcatalog',
+  'facebook',
   'twitterbot',
   'linkedinbot',
   'whatsapp',
-  'telegrambot'
+  'telegrambot',
+  'slack',
+  'discord'
 ];
 
 // Cache en mémoire pour stocker les pages pré‑rendues et éviter des rendus répétitifs
@@ -127,12 +131,22 @@ app.use(cookieParser());
 // ignorées et continuent vers les routeurs existants.
 app.use(async (req, res, next) => {
   const userAgent = req.headers['user-agent'];
+  
+  // Log pour diagnostiquer
+  console.log(`[Dynamic Render] Request: ${req.path} | User-Agent: ${userAgent}`);
+  
   // Si l'UA est absent ou ne contient aucun des agents de la liste, continuer normalement
-  if (!userAgent || !BOT_AGENTS.some(bot => userAgent.toLowerCase().includes(bot))) {
+  const isBot = userAgent && BOT_AGENTS.some(bot => userAgent.toLowerCase().includes(bot));
+  if (!isBot) {
+    console.log(`[Dynamic Render] Non-bot request, continuing normally`);
     return next();
   }
+  
+  console.log(`[Dynamic Render] Bot detected! Processing request for: ${req.path}`);
+  
   // Ne pas traiter les appels API
   if (req.path.startsWith('/api')) {
+    console.log(`[Dynamic Render] API request, skipping render`);
     return next();
   }
   try {
