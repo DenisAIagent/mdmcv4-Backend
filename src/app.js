@@ -26,6 +26,7 @@ const ErrorResponse = require('../utils/errorResponse');
 const authRoutes = require('../routes/auth.routes');
 const artistRoutes = require('../routes/artists.routes');
 const smartlinkRoutes = require('../routes/smartLinkRoutes');
+const shortLinksRoutes = require('../routes/shortLinks.routes');
 const uploadRoutes = require('../routes/uploadRoutes');
 const wordpressRoutes = require('../routes/wordpress.routes');
 const analyticsRoutes = require('../routes/analytics');
@@ -129,11 +130,11 @@ app.get('/', (req, res, next) => {
 // ✅ CORRECTION: Toutes les routes maintenant sur /api/v1
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/artists', artistRoutes);
-app.use('/api/v1/smartlinks', smartlinkRoutes);// Après la ligne 71
+app.use('/api/v1/smartlinks', smartlinkRoutes);
+app.use('/api/v1/shortlinks', shortLinksRoutes);
 app.use('/api/v1/wordpress', wordpressRoutes);
 app.use('/api/wordpress', wordpressRoutes); // ⭐ Ajoutez cette ligne
 app.use('/api/v1/upload', uploadRoutes);
-app.use('/api/v1/wordpress', wordpressRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use("/api/v1/reviews", require("../routes/reviews.routes"));
 app.use("/api/simulator", require("../routes/simulator.routes"));
@@ -148,6 +149,7 @@ app.get('/api/v1', (req, res) => {
       auth: '/api/v1/auth',
       artists: '/api/v1/artists',
       smartlinks: '/api/v1/smartlinks',
+      shortlinks: '/api/v1/shortlinks',
       upload: '/api/v1/upload',
       wordpress: '/api/v1/wordpress',
       reviews: '/api/v1/reviews'

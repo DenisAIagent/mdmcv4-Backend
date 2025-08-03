@@ -1,5 +1,6 @@
 // backend/controllers/smartLinkController.js
 const SmartLink = require('../models/SmartLink');
+const ShortLink = require('../models/ShortLink');
 const Artist = require('../models/Artist');
 const asyncHandler = require('../middleware/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse'); // Assurez-vous que ce fichier existe ou adaptez
@@ -95,6 +96,21 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
   console.log('🔍 DEBUG - SmartLinkData avant création:', JSON.stringify(smartLinkData, null, 2));
   
   const smartLink = await SmartLink.create(smartLinkData);
+  
+  // Créer automatiquement un ShortLink pour ce SmartLink
+  try {
+    const shortCode = await ShortLink.generateShortCode();
+    const shortLink = await ShortLink.create({
+      shortCode,
+      smartLinkId: smartLink._id,
+      createdBy: null // req.user?.id si authentification activée
+    });
+    
+    console.log(`✅ ShortLink auto-créé: ${shortCode} pour SmartLink ${smartLink.trackTitle}`);
+  } catch (error) {
+    console.warn('⚠️ Erreur création ShortLink automatique:', error.message);
+    // Ne pas faire échouer la création du SmartLink si le ShortLink échoue
+  }
   
   // Récupérer le SmartLink avec les informations de l'artiste pour la redirection
   const smartLinkWithArtist = await SmartLink.findById(smartLink._id).populate({
