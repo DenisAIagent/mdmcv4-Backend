@@ -1,8 +1,10 @@
 // middleware/puppeteerSEO.js
 // Middleware Puppeteer pour rendu dynamique et métadonnées Open Graph
+// Compatible avec architecture Vue.js SPA + Hash Routing
 
 const puppeteer = require('puppeteer');
-const SmartLinkHTML = require('../models/SmartLinkHTML');
+const SmartLink = require('../models/SmartLink');
+const Artist = require('../models/Artist');
 
 // 🤖 User-agents des bots sociaux et SEO
 const BOT_USER_AGENTS = [
@@ -76,23 +78,20 @@ const setCachedPage = (key, html) => {
 
 /**
  * 🎨 Génère le HTML statique avec métadonnées Open Graph
+ * Compatible avec le modèle SmartLink Vue.js
  */
 const generateStaticHTML = (smartlink) => {
-  const {
-    slug,
-    artist,
-    title,
-    description,
-    imageUrl,
-    seoTitle,
-    seoDescription,
-    primaryColor = '#FF6B35',
-    template = 'default'
-  } = smartlink;
-
-  const platforms = smartlink.getAvailablePlatforms ? smartlink.getAvailablePlatforms() : [];
-  const currentUrl = `https://www.mdmcmusicads.com/#/smartlinks/${slug}`;
-  const staticUrl = `https://www.mdmcmusicads.com/smartlinks/${slug}`;
+  const artist = smartlink.artistId;
+  const title = smartlink.trackTitle;
+  const description = smartlink.description || `Écoutez "${smartlink.trackTitle}" de ${artist.name} sur toutes les plateformes de streaming.`;
+  const imageUrl = smartlink.coverImageUrl || 'https://www.mdmcmusicads.com/assets/images/default-cover.jpg';
+  const seoTitle = `${title} - ${artist.name}`;
+  const seoDescription = description;
+  const primaryColor = '#E50914'; // Rouge MDMC
+  
+  const platforms = smartlink.platformLinks || [];
+  const currentUrl = `https://www.mdmcmusicads.com/#/smartlinks/${artist.slug}/${smartlink.slug}`;
+  const staticUrl = `https://www.mdmcmusicads.com/smartlinks/${artist.slug}/${smartlink.slug}`;
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -175,8 +174,8 @@ const generateStaticHTML = (smartlink) => {
       // Analytics tracking pour pages statiques
       if (typeof gtag !== 'undefined') {
         gtag('event', 'static_smartlink_view', {
-          'smartlink_slug': '${slug}',
-          'artist': '${artist}',
+          'smartlink_slug': '${smartlink.slug}',
+          'artist': '${artist.name}',
           'title': '${title}',
           'page_type': 'static_seo'
         });
@@ -265,10 +264,10 @@ const generateStaticHTML = (smartlink) => {
 </head>
 <body>
     <div class="container">
-        <img src="${imageUrl}" alt="${title} - ${artist}" class="cover" 
+        <img src="${imageUrl}" alt="${title} - ${artist.name}" class="cover" 
              onerror="this.style.display='none'">
         <h1>${title}</h1>
-        <div class="artist">${artist}</div>
+        <div class="artist">${artist.name}</div>
         <div class="loading">
             <p>Chargement de votre SmartLink...</p>
             <div class="spinner"></div>
@@ -293,11 +292,11 @@ const generateStaticHTML = (smartlink) => {
       
       // Event pour tracking des vues statiques
       gtag('event', 'page_view', {
-        'page_title': '${title} - ${artist} (Static)',
+        'page_title': '${title} - ${artist.name} (Static)',
         'page_location': '${staticUrl}',
         'custom_map': {
           'dimension1': 'static_smartlink',
-          'dimension2': '${artist}',
+          'dimension2': '${artist.name}',
           'dimension3': '${title}'
         }
       });
@@ -339,18 +338,21 @@ const puppeteerSEOMiddleware = async (req, res, next) => {
       return res.send(cachedHTML);
     }
     
-    // Rechercher le SmartLink en base
-    const smartlink = await SmartLinkHTML.findOne({
-      slug: slug,
+    // Rechercher le SmartLink en base avec l'artiste
+    const smartlink = await SmartLink.findOne({
+      slug: trackSlug,
       isPublished: true
+    }).populate({
+      path: 'artistId',
+      select: 'name slug'
     });
     
-    if (!smartlink) {
-      console.log(`❌ SmartLink non trouvé: ${slug}`);
+    if (!smartlink || !smartlink.artistId || smartlink.artistId.slug !== artistSlug) {
+      console.log(`❌ SmartLink non trouvé: ${artistSlug}/${trackSlug}`);
       return next(); // 404 géré par la SPA
     }
     
-    console.log(`✅ SmartLink trouvé: ${smartlink.title} - ${smartlink.artist}`);
+    console.log(`✅ SmartLink trouvé: ${smartlink.trackTitle} - ${smartlink.artistId.name}`);
     
     // Générer le HTML statique optimisé
     const staticHTML = generateStaticHTML(smartlink);

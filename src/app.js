@@ -135,8 +135,9 @@ app.use('/', publicSmartLinkRoutes);
 // Servir les pages statiques HTML générées pour les métadonnées Open Graph
 app.use('/sl', express.static(path.join(__dirname, '..', 'public', 'sl')));
 
-// --- 🆕 ROUTES SEO POUR ARCHITECTURE HTML SIMPLIFIÉE ---
+// --- 🆕 ROUTES SEO POUR ARCHITECTURE VUE.JS ---
 // Middleware Puppeteer pour détection bots et rendu dynamique
+// Compatible avec hash routing Vue.js /#/smartlinks/:artistSlug/:trackSlug
 app.get('/smartlinks/:artistSlug/:trackSlug', puppeteerSEOMiddleware);
 
 // Route pour gérer les URLs avec hash (#) - redirection côté serveur
