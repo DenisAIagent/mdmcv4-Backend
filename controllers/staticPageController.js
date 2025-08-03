@@ -55,13 +55,19 @@ const generateStaticPage = async (req, res) => {
 
       console.log(`✅ [Static Page] Sauvegardée: ${filePath}`);
 
-      // Mettre à jour le SmartLink avec l'URL de la page statique
+      // Mettre à jour le SmartLink avec l'URL de la page statique (non bloquant)
       if (smartlinkId) {
-        await SmartLink.findByIdAndUpdate(smartlinkId, {
-          staticPageUrl: `https://www.mdmcmusicads.com/sl/${shortId}.html`,
-          staticPageGenerated: true,
-          staticPageGeneratedAt: new Date()
-        });
+        try {
+          await SmartLink.findByIdAndUpdate(smartlinkId, {
+            staticPageUrl: `https://www.mdmcmusicads.com/sl/${shortId}.html`,
+            staticPageGenerated: true,
+            staticPageGeneratedAt: new Date()
+          }, { timeout: 5000 }); // Timeout de 5s
+          console.log(`✅ [Static Page] SmartLink mis à jour: ${smartlinkId}`);
+        } catch (dbError) {
+          console.warn(`⚠️ [Static Page] Échec mise à jour DB (non critique): ${dbError.message}`);
+          // Ne pas faire échouer la réponse si juste la DB qui pose problème
+        }
       }
 
       res.json({
@@ -71,7 +77,8 @@ const generateStaticPage = async (req, res) => {
           url: `https://www.mdmcmusicads.com/sl/${shortId}.html`,
           filePath: `/sl/${shortId}.html`,
           shortId,
-          fileSize: html.length
+          fileSize: html.length,
+          dbUpdated: smartlinkId ? 'attempted' : 'skipped'
         }
       });
 
