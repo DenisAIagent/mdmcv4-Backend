@@ -50,6 +50,7 @@ const ErrorResponse = require('../utils/errorResponse');
 const authRoutes = require('../routes/auth.routes');
 const artistRoutes = require('../routes/artists.routes');
 const smartlinkRoutes = require('../routes/smartLinkRoutes');
+const smartlinksHTMLRoutes = require('../routes/smartlinksHTML.routes'); // 🆕 Nouvelles routes HTML
 const shortLinksRoutes = require('../routes/shortLinks.routes');
 const uploadRoutes = require('../routes/uploadRoutes');
 const wordpressRoutes = require('../routes/wordpress.routes');
@@ -59,6 +60,7 @@ const staticPagesRoutes = require('../routes/staticPages.routes');
 
 // Middleware SEO pour smartlinks
 const { smartlinkSEOMiddleware } = require('../middleware/smartlinkSEO');
+const { puppeteerSEOMiddleware } = require('../middleware/puppeteerSEO'); // 🆕 Middleware Puppeteer
 
 // Ajoutez d'autres routeurs ici selon votre projet
 // const userRoutes = require('../routes/user.routes.js');
@@ -133,9 +135,9 @@ app.use('/', publicSmartLinkRoutes);
 // Servir les pages statiques HTML générées pour les métadonnées Open Graph
 app.use('/sl', express.static(path.join(__dirname, '..', 'public', 'sl')));
 
-// --- Route SEO pour smartlinks (AVANT les routes API) ---
-// Intercepte les requêtes directes vers les smartlinks pour les bots sociaux
-app.get('/smartlinks/:artistSlug/:trackSlug', smartlinkSEOMiddleware);
+// --- 🆕 ROUTES SEO POUR ARCHITECTURE HTML SIMPLIFIÉE ---
+// Middleware Puppeteer pour détection bots et rendu dynamique
+app.get('/smartlinks/:artistSlug/:trackSlug', puppeteerSEOMiddleware);
 
 // Route pour gérer les URLs avec hash (#) - redirection côté serveur
 app.get('/', (req, res, next) => {
@@ -162,6 +164,7 @@ app.get('/', (req, res, next) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/artists', artistRoutes);
 app.use('/api/v1/smartlinks', smartlinkRoutes);
+app.use('/api/v1/smartlinks-html', smartlinksHTMLRoutes); // 🆕 API SmartLinks HTML
 app.use('/api/v1/shortlinks', shortLinksRoutes);
 app.use('/api/v1/wordpress', wordpressRoutes);
 app.use('/api/wordpress', wordpressRoutes); // ⭐ Ajoutez cette ligne
