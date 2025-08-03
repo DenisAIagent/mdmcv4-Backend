@@ -15,6 +15,26 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const path = require('path'); // Utile pour construire des chemins
 
+// Ajout de Puppeteer pour le rendu dynamique
+const puppeteer = require('puppeteer');
+
+// ---------------------------------------------------------------------------
+// Dynamic rendering configuration
+// ---------------------------------------------------------------------------
+// Liste des user‑agents considérés comme des bots sociaux (Googlebot, Facebook, Twitter…)
+const BOT_AGENTS = [
+  'googlebot',
+  'bingbot',
+  'facebookexternalhit',
+  'twitterbot',
+  'linkedinbot',
+  'whatsapp',
+  'telegrambot'
+];
+
+// Cache en mémoire pour stocker les pages pré‑rendues et éviter des rendus répétitifs
+const RENDER_CACHE = new Map();
+
 // Importer la classe ErrorResponse et le gestionnaire d'erreurs global
 // CORRIGÉ: Chemin pour remonter du dossier 'src' vers 'utils'
 const ErrorResponse = require('../utils/errorResponse');
@@ -98,6 +118,47 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// ---------------------------------------------------------------------------
+// Middleware de rendu dynamique
+// ---------------------------------------------------------------------------
+// Ce middleware intercepte les requêtes des bots sociaux et renvoie une version
+// HTML pré‑rendue de la SPA en utilisant Puppeteer. Les requêtes API sont
+// ignorées et continuent vers les routeurs existants.
+app.use(async (req, res, next) => {
+  const userAgent = req.headers['user-agent'];
+  // Si l'UA est absent ou ne contient aucun des agents de la liste, continuer normalement
+  if (!userAgent || !BOT_AGENTS.some(bot => userAgent.toLowerCase().includes(bot))) {
+    return next();
+  }
+  // Ne pas traiter les appels API
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  try {
+    // Construire l'URL complète (y compris le hash SPA) à pré‑rendre
+    const baseUrl = process.env.FRONTEND_BASE_URL || 'https://www.mdmcmusicads.com';
+    const fullUrlToRender = `${baseUrl}/#${req.originalUrl}`;
+    // Servir depuis le cache si la page a déjà été rendue
+    if (RENDER_CACHE.has(fullUrlToRender)) {
+      console.log(`[Dynamic Render] Servant depuis le cache : ${fullUrlToRender}`);
+      return res.send(RENDER_CACHE.get(fullUrlToRender));
+    }
+    console.log(`[Dynamic Render] Lancement du rendu pour : ${fullUrlToRender}`);
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.goto(fullUrlToRender, { waitUntil: 'networkidle0' });
+    const html = await page.content();
+    await browser.close();
+    // Mise en cache pour 1 h
+    RENDER_CACHE.set(fullUrlToRender, html);
+    setTimeout(() => RENDER_CACHE.delete(fullUrlToRender), 3600_000);
+    return res.send(html);
+  } catch (err) {
+    console.error(`[Dynamic Render] Erreur lors du rendu de ${req.originalUrl}`, err);
+    return next();
+  }
+});
 
 // --- 🎯 NOUVELLES ROUTES SMARTLINKS HYBRIDES AVEC ANALYTICS STATIQUES ---
 // IMPORTANT: Ces routes doivent être AVANT les routes API pour intercepter les requêtes
