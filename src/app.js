@@ -51,6 +51,7 @@ const authRoutes = require('../routes/auth.routes');
 const artistRoutes = require('../routes/artists.routes');
 const smartlinkRoutes = require('../routes/smartLinkRoutes');
 const smartlinksHTMLRoutes = require('../routes/smartlinksHTML.routes'); // 🆕 Nouvelles routes HTML
+const staticSmartlinksRoutes = require('../routes/staticSmartlinks.routes'); // 🆕 Routes HTML statiques
 const shortLinksRoutes = require('../routes/shortLinks.routes');
 const uploadRoutes = require('../routes/uploadRoutes');
 const wordpressRoutes = require('../routes/wordpress.routes');
@@ -135,10 +136,9 @@ app.use('/', publicSmartLinkRoutes);
 // Servir les pages statiques HTML générées pour les métadonnées Open Graph
 app.use('/sl', express.static(path.join(__dirname, '..', 'public', 'sl')));
 
-// --- 🆕 ROUTES SEO POUR ARCHITECTURE VUE.JS ---
-// Middleware Puppeteer pour détection bots et rendu dynamique
-// Compatible avec hash routing Vue.js /#/smartlinks/:artistSlug/:trackSlug
-app.get('/smartlinks/:artistSlug/:trackSlug', puppeteerSEOMiddleware);
+// --- 🆕 ARCHITECTURE HTML STATIQUE SMARTLINKS ---
+// Routes HTML statiques pour SEO parfait (remplace Puppeteer)
+// URLs directes : /smartlinks/:artistSlug/:trackSlug
 
 // Route pour gérer les URLs avec hash (#) - redirection côté serveur
 app.get('/', (req, res, next) => {
@@ -164,6 +164,9 @@ app.get('/', (req, res, next) => {
 // ✅ CORRECTION: Toutes les routes maintenant sur /api/v1
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/artists', artistRoutes);
+// 🔥 ARCHITECTURE HTML STATIQUE ACTIVÉE - PRIORITÉ MAXIMALE
+app.use('/smartlinks', staticSmartlinksRoutes); // 🆕 Pages HTML statiques (AVANT tout)
+
 app.use('/api/v1/smartlinks', smartlinkRoutes);
 app.use('/api/v1/smartlinks-html', smartlinksHTMLRoutes); // 🆕 API SmartLinks HTML
 app.use('/api/v1/shortlinks', shortLinksRoutes);
