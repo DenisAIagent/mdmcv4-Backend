@@ -85,7 +85,7 @@ function generateAndSendSEO(smartLink, artistSlug, trackSlug, res) {
     title: `${smartLink.trackTitle} - ${smartLink.artistId?.name || smartLink.artistName}`,
     description: smartLink.description || `Listen to ${smartLink.trackTitle} by ${smartLink.artistId?.name || smartLink.artistName} on your favorite music platform. Available on Spotify, Apple Music, YouTube and more.`,
     image: smartLink.coverImageUrl || 'https://www.mdmcmusicads.com/assets/images/logo.png',
-    url: `https://www.mdmcmusicads.com/#/smartlinks/${artistSlug}/${trackSlug}`,
+    url: `https://www.mdmcmusicads.com/smartlinks/${artistSlug}/${trackSlug}`,
     siteName: 'MDMC Music Ads',
     type: 'music.song',
     artist: smartLink.artistId?.name || smartLink.artistName,
@@ -147,7 +147,7 @@ function generateSEOHTML(metadata) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- Auto-redirect to React app -->
-    <meta http-equiv="refresh" content="0; url=${metadata.url}">
+    <meta http-equiv="refresh" content="0; url=https://www.mdmcmusicads.com/#/smartlinks/${artistSlug}/${trackSlug}">
     
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P11JTJ21NZ"></script>
@@ -164,7 +164,7 @@ function generateSEOHTML(metadata) {
         <img src="${metadata.image}" alt="${metadata.title}" style="max-width: 200px; border-radius: 12px; margin-bottom: 20px;">
         <h1 style="color: #333; margin-bottom: 10px;">${metadata.title}</h1>
         <p style="color: #666; margin-bottom: 20px; max-width: 500px;">${metadata.description}</p>
-        <a href="${metadata.url}" style="background: #1db954; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+        <a href="https://www.mdmcmusicads.com/#/smartlinks/${artistSlug}/${trackSlug}" style="background: #1db954; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
             Écouter maintenant →
         </a>
         <p style="color: #999; font-size: 12px; margin-top: 20px;">
@@ -175,7 +175,7 @@ function generateSEOHTML(metadata) {
     <!-- Fallback redirect script -->
     <script>
         setTimeout(function() {
-            window.location.href = '${metadata.url}';
+            window.location.href = 'https://www.mdmcmusicads.com/#/smartlinks/${artistSlug}/${trackSlug}';
         }, 100);
     </script>
 </body>

@@ -263,7 +263,7 @@ const generateStaticHTML = (data) => {
   } = data;
 
   const title = `${trackTitle} - ${artistName}`;
-  const reactUrl = `/#/smartlinks/${artistName.toLowerCase().replace(/\s+/g, '-')}/${trackTitle.toLowerCase().replace(/\s+/g, '-')}-${shortId}`;
+  const reactUrl = `https://www.mdmcmusicads.com/#/smartlinks/${artistName.toLowerCase().replace(/\s+/g, '-')}/${trackTitle.toLowerCase().replace(/\s+/g, '-')}-${shortId}`;
   const currentUrl = `https://www.mdmcmusicads.com/sl/${shortId}.html`;
 
   return `<!DOCTYPE html>
