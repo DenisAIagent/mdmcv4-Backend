@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= seoTitle %></title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="<%= seoDescription %>">
+    <meta name="keywords" content="<%= title %>, <%= artist %>, musique, streaming, smartlink, MDMC">
+    <meta name="author" content="MDMC Music Ads">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="music.song">
+    <meta property="og:url" content="<%= smartlinkUrl %>">
+    <meta property="og:title" content="<%= title %> - <%= artist %>">
+    <meta property="og:description" content="<%= seoDescription %>">
+    <meta property="og:image" content="<%= imageUrl %>">
+    <meta property="og:image:secure_url" content="<%= imageUrl %>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:site_name" content="MDMC SmartLinks">
+    <meta property="og:locale" content="fr_FR">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="<%= smartlinkUrl %>">
+    <meta name="twitter:title" content="<%= title %> - <%= artist %>">
+    <meta name="twitter:description" content="<%= seoDescription %>">
+    <meta name="twitter:image" content="<%= imageUrl %>">
+    <meta name="twitter:image:alt" content="<%= title %> - <%= artist %>">
+    <meta name="twitter:site" content="@MDMCMusicAds">
+    
+    <!-- Music specific meta -->
+    <meta property="music:song" content="<%= title %>">
+    <meta property="music:musician" content="<%= artist %>">
+    <meta property="music:creator" content="MDMC Music Ads">
+    <% if (releaseDate) { %>
+    <meta property="music:release_date" content="<%= releaseDate %>">
+    <% } %>
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="<%= canonicalUrl %>">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="<%= imageUrl %>" as="image">
+    <% if (platforms.length > 0) { %>
+    <link rel="preconnect" href="https://open.spotify.com">
+    <link rel="preconnect" href="https://music.apple.com">
+    <% } %>
+    
+    <!-- Analytics Scripts -->
+    <% if (trackingIds.ga4Id) { %>
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<%= trackingIds.ga4Id %>"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '<%= trackingIds.ga4Id %>', {
+            page_title: '<%= title.replace(/'/g, "\\'") %> - <%= artist.replace(/'/g, "\\'") %>',
+            page_location: window.location.href,
+            custom_map: {
+                'custom_parameter_1': 'smartlink_type',
+                'custom_parameter_2': 'artist_name', 
+                'custom_parameter_3': 'track_title'
+            }
+        });
+        
+        gtag('event', 'page_view', {
+            smartlink_type: 'music',
+            artist_name: '<%= artist.replace(/'/g, "\\'") %>',
+            track_title: '<%= title.replace(/'/g, "\\'") %>',
+            smartlink_id: '<%= smartlinkId %>'
+        });
+    </script>
+    <% } %>
+    
+    <% if (trackingIds.gtmId) { %>
+    <!-- Google Tag Manager -->
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'smartlink_type': 'music',
+            'artist_name': '<%= artist.replace(/'/g, "\\'") %>',
+            'track_title': '<%= title.replace(/'/g, "\\'") %>',
+            'smartlink_id': '<%= smartlinkId %>',
+            'event': 'smartlink_page_load'
+        });
+        
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','<%= trackingIds.gtmId %>');
+    </script>
+    <% } %>
+    
+    <% if (trackingIds.metaPixelId) { %>
+    <!-- Meta Pixel -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        
+        fbq('init', '<%= trackingIds.metaPixelId %>');
+        fbq('track', 'PageView');
+        
+        fbq('trackCustom', 'SmartLinkView', {
+            content_name: '<%= title.replace(/'/g, "\\'") %> - <%= artist.replace(/'/g, "\\'") %>',
+            content_category: 'Music',
+            smartlink_type: 'music',
+            artist_name: '<%= artist.replace(/'/g, "\\'") %>',
+            track_title: '<%= title.replace(/'/g, "\\'") %>',
+            smartlink_id: '<%= smartlinkId %>'
+        });
+    </script>
+    <% } %>
+    
+    <!-- Critical CSS Inline -->
+    <style>
+        /* Critical CSS pour First Contentful Paint optimisé */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, <%= primaryColor %>33 0%, <%= primaryColor %>66 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .artwork {
+            width: 200px;
+            height: 200px;
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            display: block;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            object-fit: cover;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        
+        .artist {
+            font-size: 18px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .description {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+        
+        .platforms {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .platform {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            border: 2px solid transparent;
+        }
+        
+        .platform:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: <%= primaryColor %>33;
+        }
+        
+        .platform-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .platform-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .platform-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+        
+        .platform-cta {
+            background: <%= primaryColor %>;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .platform-cta:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .footer a {
+            color: <%= primaryColor %>;
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container { 
+                padding: 30px 20px; 
+            }
+            .artwork { 
+                width: 160px; 
+                height: 160px; 
+            }
+            .title { 
+                font-size: 20px; 
+            }
+            .platform {
+                padding: 14px;
+            }
+        }
+        
+        /* Platform specific colors */
+        .platform[data-platform="spotify"] .platform-icon { background: #1DB954; }
+        .platform[data-platform="apple"] .platform-icon { background: #FA243C; }
+        .platform[data-platform="youtube"] .platform-icon { background: #FF0000; }
+        .platform[data-platform="deezer"] .platform-icon { background: #FEAA2D; }
+        .platform[data-platform="amazon"] .platform-icon { background: #00A8E1; }
+        .platform[data-platform="tidal"] .platform-icon { background: #000000; }
+        .platform[data-platform="soundcloud"] .platform-icon { background: #FF8800; }
+        .platform[data-platform="bandcamp"] .platform-icon { background: #408294; }
+    </style>
+</head>
+<body>
+    <!-- GTM NoScript -->
+    <% if (trackingIds.gtmId) { %>
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=<%= trackingIds.gtmId %>" 
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <% } %>
+    
+    <!-- Meta Pixel NoScript -->
+    <% if (trackingIds.metaPixelId) { %>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+             src="https://www.facebook.com/tr?id=<%= trackingIds.metaPixelId %>&ev=PageView&noscript=1"/>
+    </noscript>
+    <% } %>
+
+    <div class="container">
+        <!-- Artwork -->
+        <img src="<%= imageUrl %>" 
+             alt="<%= title %> - <%= artist %>" 
+             class="artwork"
+             loading="eager"
+             onerror="this.style.display='none'">
+        
+        <!-- Track Info -->
+        <h1 class="title"><%= title %></h1>
+        <p class="artist"><%= artist %></p>
+        
+        <% if (description && description !== seoDescription) { %>
+        <p class="description"><%= description %></p>
+        <% } %>
+        
+        <!-- Platforms -->
+        <div class="platforms">
+            <% platforms.forEach(function(platform) { %>
+            <a href="<%= platform.url %>" 
+               class="platform" 
+               data-platform="<%= platform.key %>"
+               data-url="<%= platform.url %>"
+               onclick="trackPlatformClick('<%= platform.key %>', '<%= platform.url %>'); return false;"
+               target="_blank"
+               rel="noopener noreferrer">
+                <div class="platform-info">
+                    <div class="platform-icon" title="<%= platform.name %>">
+                        <%= platform.name.substr(0, 2).toUpperCase() %>
+                    </div>
+                    <span class="platform-name"><%= platform.name %></span>
+                </div>
+                <button class="platform-cta">Écouter</button>
+            </a>
+            <% }); %>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>SmartLink créé avec <a href="https://www.mdmcmusicads.com" target="_blank">MDMC Music Ads</a></p>
+        </div>
+    </div>
+
+    <!-- Analytics & Tracking JavaScript -->
+    <script>
+        // Configuration globale SmartLink
+        window.SMARTLINK_DATA = {
+            id: '<%= smartlinkId %>',
+            title: '<%= title.replace(/'/g, "\\'") %>',
+            artist: '<%= artist.replace(/'/g, "\\'") %>',
+            platforms: <%- platformsJson %>
+        };
+        
+        // Fonction de tracking des clics
+        function trackPlatformClick(platform, url) {
+            console.log('🔗 Clic plateforme:', platform);
+            
+            // GA4 tracking
+            if (window.gtag) {
+                gtag('event', 'platform_click', {
+                    event_category: 'smartlink',
+                    event_label: platform,
+                    smartlink_id: window.SMARTLINK_DATA.id,
+                    track_title: window.SMARTLINK_DATA.title,
+                    artist_name: window.SMARTLINK_DATA.artist,
+                    platform_clicked: platform,
+                    value: 1
+                });
+            }
+            
+            // GTM tracking  
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    event: 'smartlink_platform_click',
+                    platform_name: platform,
+                    platform_url: url,
+                    smartlink_id: window.SMARTLINK_DATA.id,
+                    track_title: window.SMARTLINK_DATA.title,
+                    artist_name: window.SMARTLINK_DATA.artist,
+                    event_category: 'smartlink_interaction',
+                    event_action: 'platform_click',
+                    event_label: platform,
+                    value: 1
+                });
+            }
+            
+            // Meta Pixel tracking
+            if (window.fbq) {
+                fbq('track', 'Lead', {
+                    content_name: window.SMARTLINK_DATA.title + ' - ' + window.SMARTLINK_DATA.artist,
+                    content_category: 'Music',
+                    platform: platform,
+                    value: 1,
+                    currency: 'EUR'
+                });
+                
+                fbq('trackCustom', 'SmartLinkPlatformClick', {
+                    platform_name: platform,
+                    smartlink_id: window.SMARTLINK_DATA.id,
+                    track_title: window.SMARTLINK_DATA.title,
+                    artist_name: window.SMARTLINK_DATA.artist
+                });
+            }
+            
+            // Database tracking (async)
+            fetch('/api/smartlinks-html/<%= smartlinkId %>/click', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ platform: platform })
+            }).catch(function(err) {
+                console.warn('📊 Database tracking failed:', err);
+            });
+            
+            // Redirection après tracking
+            setTimeout(function() {
+                window.open(url, '_blank', 'noopener,noreferrer');
+            }, 100);
+        }
+        
+        // Analytics status
+        console.log('🎯 MDMC SmartLink chargé:', {
+            id: window.SMARTLINK_DATA.id,
+            platforms: window.SMARTLINK_DATA.platforms.length,
+            analytics: {
+                ga4: !!window.gtag,
+                gtm: !!window.dataLayer,
+                metaPixel: !!window.fbq
+            }
+        });
+    </script>
+</body>
+</html>
