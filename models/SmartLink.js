@@ -71,12 +71,30 @@ const smartLinkSchema = new mongoose.Schema(
         },
       ],
     },
-    trackingIds: {
-      ga4Id: { type: String, trim: true, sparse: true },
-      gtmId: { type: String, trim: true, sparse: true },
-      metaPixelId: { type: String, trim: true, sparse: true },
-      tiktokPixelId: { type: String, trim: true, sparse: true },
-      googleAdsId: { type: String, trim: true, sparse: true }
+    analytics: {
+      trackingMode: {
+        type: String,
+        enum: ['global', 'custom'],
+        default: 'global'
+      },
+      customTracking: {
+        ga4: {
+          enabled: { type: Boolean, default: false },
+          measurementId: { type: String, trim: true, sparse: true }
+        },
+        gtm: {
+          enabled: { type: Boolean, default: false },
+          containerId: { type: String, trim: true, sparse: true }
+        },
+        meta: {
+          enabled: { type: Boolean, default: false },
+          pixelId: { type: String, trim: true, sparse: true }
+        },
+        tiktok: {
+          enabled: { type: Boolean, default: false },
+          pixelId: { type: String, trim: true, sparse: true }
+        }
+      }
     },
     viewCount: { // Ancien clickCount, pour les vues de la page SmartLink
       type: Number,
