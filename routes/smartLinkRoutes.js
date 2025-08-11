@@ -1,6 +1,7 @@
 // backend/routes/smartlinkRoutes.js
 const express = require("express");
 const router = express.Router();
+const SmartLink = require("../models/SmartLink");
 
 const {
   createSmartLink,
@@ -212,6 +213,49 @@ router.get(
   handleValidationErrors,
   logClick, // Middleware pour incrémenter viewCount
   getPublicSmartLinkBySlugs // Ne doit PLUS incrémenter viewCount
+);
+
+// Route pour récupérer les métadonnées par trackSlug uniquement (pour middleware OpenGraph)
+router.get(
+  "/by-slug/:trackSlug",
+  param("trackSlug", "Slug de morceau invalide").isSlug(),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const { trackSlug } = req.params;
+      
+      const smartlink = await SmartLink.findOne({ 
+        slug: trackSlug,
+        isPublished: true 
+      }).populate('artistId', 'name slug');
+      
+      if (!smartlink) {
+        return res.status(404).json({
+          success: false,
+          error: `SmartLink non trouvé avec le slug ${trackSlug}`
+        });
+      }
+      
+      res.status(200).json({
+        success: true,
+        smartlink: {
+          trackTitle: smartlink.trackTitle,
+          artistName: smartlink.artistId?.name || smartlink.artistName,
+          description: smartlink.description,
+          coverImageUrl: smartlink.coverImageUrl,
+          slug: smartlink.slug,
+          releaseDate: smartlink.releaseDate,
+          platformLinks: smartlink.platformLinks
+        }
+      });
+    } catch (error) {
+      console.error('Erreur récupération SmartLink by slug:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erreur serveur'
+      });
+    }
+  }
 );
 
 router.post(
