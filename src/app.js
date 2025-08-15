@@ -106,7 +106,9 @@ if (process.env.NODE_ENV === 'development') {
       process.env.FRONTEND_URL || 'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:3002',
+      'http://localhost:3003',
       'https://mdmcv7-frontend-production.up.railway.app',
+      'https://smartlink.mdmcmusicads.com',
       'http://192.168.1.236:3000',
       'http://192.168.1.236:3001',
       'http://192.168.1.236:3002'
@@ -164,12 +166,28 @@ app.use('/smartlinks', staticSmartlinksRoutes); // 🆕 Pages HTML statiques (AV
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/artists', artistRoutes);
 
+// ⭐ Routes publiques pour interface admin (AVANT les routes protégées)
+const { fetchPlatformLinks, getAllSmartLinks, createSmartLink } = require('../controllers/smartLinkController');
+
+app.get('/api/proxy/fetch-metadata', (req, res, next) => {
+  // Passer l'URL depuis query params vers body
+  req.body = { sourceUrl: req.query.url };
+  fetchPlatformLinks(req, res, next);
+});
+
+app.post('/api/proxy/create-smartlink', createSmartLink);
+
+app.get('/api/smartlinks', getAllSmartLinks);
+
+// Routes publiques pour upload (compatibility)
+app.use('/api/upload', uploadRoutes);
+
+// Routes protégées
 app.use('/api/v1/smartlinks', smartlinkRoutes);
 app.use('/api/v1/smartlinks-html', smartlinksHTMLRoutes); // 🆕 API SmartLinks HTML
 app.use('/api/v1/shortlinks', shortLinksRoutes);
 app.use('/api/v1/wordpress', wordpressRoutes);
 app.use('/api/wordpress', wordpressRoutes); // ⭐ Ajoutez cette ligne
-app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/static-pages', staticPagesRoutes);
 app.use("/api/v1/reviews", require("../routes/reviews.routes"));

@@ -49,7 +49,7 @@ const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null,
 // @access  Private (Admin)
 exports.createSmartLink = asyncHandler(async (req, res, next) => {
   console.log('🔍 DEBUG - Payload complet reçu:', JSON.stringify(req.body, null, 2));
-  const { artistId, artistName, trackTitle, slug: proposedSlugByUser, ...otherData } = req.body;
+  const { artistId, artistName, title, trackTitle, slug: proposedSlugByUser, ...otherData } = req.body;
 
   let artist;
   let finalArtistId;
@@ -81,15 +81,27 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('artistId ou artistName requis', 400));
   }
 
-  console.log(`🔍 DEBUG - Génération slug pour: ${trackTitle} avec artistId: ${finalArtistId}`);
-  const finalSlug = await generateUniqueTrackSlug(trackTitle, finalArtistId, proposedSlugByUser);
+  const finalTitle = title || trackTitle;
+  console.log(`🔍 DEBUG - Génération slug pour: ${finalTitle} avec artistId: ${finalArtistId}`);
+  const finalSlug = await generateUniqueTrackSlug(finalTitle, finalArtistId, proposedSlugByUser);
   console.log(`🔍 DEBUG - Slug généré: ${finalSlug}`);
+
+  // Transformer les liens en format platformLinks attendu par le modèle
+  let platformLinks = [];
+  if (req.body.links && typeof req.body.links === 'object') {
+    platformLinks = Object.entries(req.body.links).map(([platform, linkData]) => ({
+      platform,
+      url: linkData.url || linkData
+    })).filter(link => link.url);
+  }
 
   const smartLinkData = {
     ...otherData,
     artistId: finalArtistId,
-    trackTitle,
+    trackTitle: finalTitle,
     slug: finalSlug,
+    platformLinks,
+    coverImageUrl: req.body.thumbnailUrl,
     // userId: req.user?.id, // Si gestion des utilisateurs activée et protect middleware utilisé
   };
 
