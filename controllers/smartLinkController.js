@@ -88,12 +88,20 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
 
   // Transformer les liens en format platformLinks attendu par le modèle
   let platformLinks = [];
-  if (req.body.links && typeof req.body.links === 'object') {
+  
+  // Si les données arrivent déjà en tant que platformLinks (tableau)
+  if (req.body.platformLinks && Array.isArray(req.body.platformLinks)) {
+    platformLinks = req.body.platformLinks.filter(link => link.platform && link.url);
+  }
+  // Si les données arrivent en tant que links (objet)
+  else if (req.body.links && typeof req.body.links === 'object') {
     platformLinks = Object.entries(req.body.links).map(([platform, linkData]) => ({
       platform,
       url: linkData.url || linkData
     })).filter(link => link.url);
   }
+  
+  console.log(`🔗 DEBUG - platformLinks transformés: ${platformLinks.length} liens`);
 
   const smartLinkData = {
     ...otherData,
