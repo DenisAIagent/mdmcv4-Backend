@@ -5,6 +5,10 @@ const Artist = require('../models/Artist');
 const asyncHandler = require('../middleware/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse'); // Assurez-vous que ce fichier existe ou adaptez
 const slugify = require('slugify');
+const StaticHtmlGenerator = require('../services/staticHtmlGenerator');
+
+// Initialiser le générateur HTML
+const staticHtmlGenerator = new StaticHtmlGenerator();
 
 // --- Fonction utilitaire interne pour générer un slug unique ---
 const generateUniqueTrackSlug = async (baseTitle, artistId, proposedSlug = null, excludeId = null) => {
@@ -137,6 +141,15 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
     path: 'artistId',
     select: 'name slug'
   });
+  
+  // 🆕 Générer automatiquement le fichier HTML statique
+  try {
+    await staticHtmlGenerator.generateSmartLinkHtml(smartLinkWithArtist);
+    console.log(`✅ Page HTML générée pour: ${smartLinkWithArtist.artistId.slug}/${smartLinkWithArtist.slug}`);
+  } catch (htmlError) {
+    console.warn('⚠️ Erreur génération HTML:', htmlError.message);
+    // Ne pas faire échouer la création si la génération HTML échoue
+  }
   
   res.status(201).json({ success: true, data: smartLinkWithArtist });
 });
