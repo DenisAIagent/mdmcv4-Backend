@@ -144,7 +144,16 @@ exports.createSmartLink = asyncHandler(async (req, res, next) => {
   
   // 🆕 Générer automatiquement le fichier HTML statique
   try {
-    await staticHtmlGenerator.generateSmartLinkHtml(smartLinkWithArtist);
+    // Transformer les données pour le générateur HTML
+    const htmlData = {
+      ...smartLinkWithArtist.toObject(),
+      artist: {
+        name: smartLinkWithArtist.artistId.name,
+        slug: smartLinkWithArtist.artistId.slug
+      }
+    };
+    
+    await staticHtmlGenerator.generateSmartLinkHtml(htmlData);
     console.log(`✅ Page HTML générée pour: ${smartLinkWithArtist.artistId.slug}/${smartLinkWithArtist.slug}`);
   } catch (htmlError) {
     console.warn('⚠️ Erreur génération HTML:', htmlError.message);
