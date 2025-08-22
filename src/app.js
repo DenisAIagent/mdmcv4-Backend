@@ -160,7 +160,7 @@ app.get('/', (req, res, next) => {
 
 // --- Monter les Routeurs ---
 // 🔥 ARCHITECTURE HTML STATIQUE ACTIVÉE - PRIORITÉ ABSOLUE
-app.use('/s', staticSmartlinksRoutes); // 🆕 Pages HTML statiques (AVANT TOUT)
+app.use('/smartlinks', staticSmartlinksRoutes); // ✅ CORRIGÉ: Les SmartLinks statiques sont maintenant servis sur /smartlinks
 
 // ✅ CORRECTION: Toutes les routes maintenant sur /api/v1
 app.use('/api/v1/auth', authRoutes);
