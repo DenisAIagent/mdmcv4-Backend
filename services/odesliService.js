@@ -356,6 +356,11 @@ class OdesliService {
       const status = error.response.status;
       const data = error.response.data;
 
+      // Vérifier d'abord les erreurs spécifiques dans les données
+      if (data && data.error === 'could_not_fetch_entity_data') {
+        return new Error(`Impossible de récupérer les données de l'entité: ${input}`);
+      }
+
       switch (status) {
         case 404:
           return new Error(`Contenu non trouvé pour: ${input}`);
