@@ -115,8 +115,7 @@ const smartLinkSchema = new mongoose.Schema(
     },
     isPublished: {
       type: Boolean,
-      default: true, // 🚀 Publié par défaut pour les tests
-      index: true
+      default: true // 🚀 Publié par défaut pour les tests
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -141,6 +140,7 @@ smartLinkSchema.pre("save", function(next) {
 });
 
 smartLinkSchema.index({ artistId: 1, slug: 1 }, { unique: true, sparse: true });
+smartLinkSchema.index({ isPublished: 1 });
 
 const SmartLink = mongoose.model("SmartLink", smartLinkSchema);
 

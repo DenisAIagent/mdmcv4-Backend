@@ -137,8 +137,7 @@ const smartLinkHTMLSchema = new mongoose.Schema(
     // 🚀 Statut et métadonnées
     isPublished: {
       type: Boolean,
-      default: true,
-      index: true
+      default: true
     },
     seoTitle: {
       type: String,

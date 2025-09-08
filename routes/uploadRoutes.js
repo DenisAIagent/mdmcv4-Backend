@@ -40,23 +40,18 @@ const uploadAudioFile = multer({
   }
 });
 
-// Route pour l'upload d'image
+// Route pour l'upload d'image (sans auth pour interface admin)
 // POST /api/upload/image (le préfixe /api/upload sera ajouté dans app.js)
 router.post(
   '/image',
-  protect, // Protéger la route (seuls les utilisateurs connectés peuvent uploader)
-  authorize('admin'), // Autoriser seulement les admins (ou d'autres rôles si besoin)
   uploadImageFile.single('image'), // Middleware multer pour traiter un seul fichier nommé 'image'
-                                   // 'image' doit correspondre au nom du champ dans FormData côté client
   uploadImage
 );
 
-// Route pour l'upload d'audio
+// Route pour l'upload d'audio (sans auth pour interface admin)
 // POST /api/upload/audio
 router.post(
   '/audio',
-  protect, // Protéger la route (seuls les utilisateurs connectés peuvent uploader)
-  authorize('admin'), // Autoriser seulement les admins
   uploadAudioFile.single('audio'), // Middleware multer pour traiter un seul fichier nommé 'audio'
   uploadAudio
 );

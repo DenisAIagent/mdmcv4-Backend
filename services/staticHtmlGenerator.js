@@ -175,6 +175,21 @@ class StaticHtmlGenerator {
       // Liens plateformes organisés
       platforms: this.organizePlatformLinks(smartlinkData.platformLinks),
       
+      // Audio preview
+      previewAudioUrl: smartlinkData.previewAudioUrl || null,
+      
+      // Analytics configuration
+      analytics: {
+        ga4: {
+          enabled: process.env.NODE_ENV === 'production' && process.env.GA4_ID,
+          trackingId: process.env.GA4_ID || 'G-XXXXXXXXXX'
+        },
+        gtm: {
+          enabled: process.env.NODE_ENV === 'production' && process.env.GTM_ID,
+          containerId: process.env.GTM_ID || 'GTM-XXXXXXX'
+        }
+      },
+      
       // Configuration
       baseUrl: this.baseUrl,
       analyticsEnabled: process.env.NODE_ENV === 'production',

@@ -1,10 +1,14 @@
 // routes/smartlinksHTML.routes.js
-// Routes API REST pour l'architecture HTML simplifiée
+// Routes API REST pour l'architecture HTML simplifiée avec génération statique
 
 const express = require('express');
 const router = express.Router();
 const SmartLinkHTML = require('../models/SmartLinkHTML');
+const StaticHtmlGenerator = require('../services/staticHtmlGenerator');
 const { body, param, validationResult } = require('express-validator');
+
+// Instance du générateur HTML statique
+const htmlGenerator = new StaticHtmlGenerator();
 
 // 🛡️ Middleware de validation des erreurs
 const handleValidationErrors = (req, res, next) => {
