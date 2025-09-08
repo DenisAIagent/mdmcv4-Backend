@@ -58,6 +58,7 @@ const wordpressRoutes = require('../routes/wordpress.routes');
 const analyticsRoutes = require('../routes/analytics');
 const publicSmartLinkRoutes = require('../routes/smartlinks/publicSmartLink');
 const staticPagesRoutes = require('../routes/staticPages.routes');
+const newsletterRoutes = require('../routes/newsletter.routes');
 
 // Middleware SEO pour smartlinks
 const { smartlinkSEOMiddleware } = require('../middleware/smartlinkSEO');
@@ -192,6 +193,7 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/static-pages', staticPagesRoutes);
 app.use("/api/v1/reviews", require("../routes/reviews.routes"));
 app.use("/api/simulator", require("../routes/simulator.routes"));
+app.use('/api/newsletter', newsletterRoutes);
 
 // --- 🎯 ROUTES SMARTLINKS HYBRIDES (FALLBACK APRÈS ROUTES STATIQUES) ---
 // IMPORTANT: Cette route catch-all DOIT être APRÈS les routes statiques
