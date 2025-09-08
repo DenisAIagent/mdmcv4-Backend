@@ -192,10 +192,89 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/static-pages', staticPagesRoutes);
 app.use("/api/v1/reviews", require("../routes/reviews.routes"));
 app.use("/api/simulator", require("../routes/simulator.routes"));
+app.use("/api/newsletter", require("../routes/newsletter.routes"));
 
 // --- 🎯 ROUTES SMARTLINKS HYBRIDES (FALLBACK APRÈS ROUTES STATIQUES) ---
 // IMPORTANT: Cette route catch-all DOIT être APRÈS les routes statiques
 app.use('/', publicSmartLinkRoutes);
+
+// 🎯 ROUTE RACINE POUR SMARTLINKS (pour domaine smartlink.mdmcmusicads.com)
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    service: 'MDMC SmartLinks Service',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    routes: {
+      smartlinks_static: '/smartlinks/:artistSlug/:trackSlug',
+      smartlinks_hybrid: '/s/:artistSlug/:trackSlug',
+      api: '/api/v1'
+    }
+  });
+});
+
+// Route racine pour SmartLinks - page d'accueil
+app.get('/', (req, res) => {
+  // Si c'est une requête pour un SmartLink spécifique via query params
+  const { artist, track } = req.query;
+  if (artist && track) {
+    return res.redirect(`/smartlinks/${artist}/${track}`);
+  }
+  
+  // Page d'accueil simple pour le service SmartLinks
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>MDMC SmartLinks Service</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          margin: 0;
+          padding: 2rem;
+          background: linear-gradient(135deg, #E50914 0%, #141414 100%);
+          color: white;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .container {
+          text-align: center;
+          max-width: 600px;
+          background: rgba(255, 255, 255, 0.1);
+          padding: 3rem;
+          border-radius: 1rem;
+          backdrop-filter: blur(10px);
+        }
+        h1 { font-size: 3rem; margin-bottom: 1rem; }
+        p { font-size: 1.2rem; opacity: 0.9; margin-bottom: 2rem; }
+        .status { 
+          background: rgba(40, 167, 69, 0.2);
+          padding: 1rem;
+          border-radius: 0.5rem;
+          border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>🎵 MDMC SmartLinks</h1>
+        <p>Service de distribution de liens musicaux intelligents</p>
+        <div class="status">
+          <strong>✅ Service opérationnel</strong><br>
+          Version 1.0.0 | ${new Date().toISOString()}
+        </div>
+        <p style="margin-top: 2rem; font-size: 0.9rem; opacity: 0.7;">
+          Format d'URL : /smartlinks/{artiste}/{titre}
+        </p>
+      </div>
+    </body>
+    </html>
+  `);
+});
 
 // ✅ CORRECTION: Route principale API v1
 app.get('/api/v1', (req, res) => {
